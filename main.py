@@ -1,4 +1,5 @@
 
+from model import *
 import argparse
 import os
 import random
@@ -22,6 +23,8 @@ parser.add_argument('--gan_type', type=str, help='dcgan | wgan | can', default='
 parser.add_argument('--batch_size', type=int, default=64, help='input batch size')
 parser.add_argument('--image_size', type=int, default=64, help='the height / width of the input image to network')
 parser.add_argument('--z_noise', type=int, default=100, help='size of the latent z vector')
+parser.add_argument('--y_dim',type=int,help="number of output/target classes",default=27)
+parser.add_argument('--channels',type=int,help="number of image channels",default=3)
 parser.add_argument('--num_gen_filters', type=int, default=64)
 parser.add_argument('--num_disc_filters', type=int, default=64)
 parser.add_argument('--num_epochs', type=int, default=25, help='number of epochs to train for')
@@ -35,4 +38,22 @@ parser.add_argument('--out_folder', default='.', help='folder to output images a
 parser.add_argument('--manual_seed', type=int, help='manual seed')
 
 options = parser.parse_args()
-print(options)
+try:
+    os.makedirs(options.outf)
+except OSError:
+    pass
+
+if options.manualSeed is None:
+    options.manualSeed = random.randint(1, 10000)
+print("Random Seed: ", options.manualSeed)
+random.seed(options.manualSeed)
+torch.manual_seed(options.manualSeed)
+if options.cuda:
+    torch.cuda.manual_seed_all(options.manualSeed)
+
+cudnn.benchmark = True
+def main():
+    gan = GAN(options)
+    gan.train()
+if __name__ == '__main__':
+    main()
