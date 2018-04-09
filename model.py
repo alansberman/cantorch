@@ -45,7 +45,6 @@ class GAN:
         self.num_epochs = options.num_epochs
         self.cuda = options.cuda
         self.num_gpu = options.num_gpu
-        self.workers = options.workers
         self.gen_path = options.gen_path
         self.disc_path = options.disc_path
         self.out_folder = options.out_folder
