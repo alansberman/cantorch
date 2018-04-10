@@ -4,6 +4,7 @@ import sys
 import os
 from PIL import Image
 from glob import glob
+from skimage import io, transform
 
 import torch
 import torch.nn as nn
@@ -12,6 +13,8 @@ import torch.backends.cudnn as cudnn
 import torch.optim as optim
 import torch.utils.data
 import torchvision.datasets as dset
+from torch.utils.data import Dataset, DataLoader
+
 import torchvision.transforms as transforms
 import torchvision.utils as vutils
 from torch.autograd import Variable
@@ -104,7 +107,12 @@ def test():
     print(' '.join('%5s' % classes[labels[j]] for j in range(4)))
 
 
-
+def get_dataset(path):
+    transform = transforms.Compose(
+    [transforms.ToTensor(),
+    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+    data = dset.ImageFolder(root="D:\\WikiArt\\wikiart\\",transform=transform)
+    return data
 
 # Mille grazie https://gist.github.com/kevinzakka/d33bf8d6c7f06a9d8c76d97a7879f5cb
 
@@ -147,15 +155,15 @@ def get_train_test_loader(data_dir,
     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
     data = dset.ImageFolder(root=data_dir,transform=transform)
     dataset_length = get_length(data_dir)
-    num_train = int((dataset_length)*(1-valid_size))
-    indices = list(range(num_train))
-    split = int(np.floor(valid_size * num_train))
-
+    num_train = int(np.floor((dataset_length)*(1-valid_size)))
+    
+    indices = list(range(dataset_length))
+    #split = int(np.floor(valid_size * num_train))
     if shuffle:
         np.random.seed(random_seed)
         np.random.shuffle(indices)
+    train_idx, test_idx = indices[:num_train], indices[num_train:]
 
-    train_idx, test_idx = indices[split:], indices[:split]
     train_sampler = SubsetRandomSampler(train_idx)
     test_sampler = SubsetRandomSampler(test_idx)
 
@@ -171,7 +179,71 @@ def get_train_test_loader(data_dir,
 
     return (train_loader, test_loader)
 
+# class WikiartDataset(Dataset):
+#     def __init__(self, root_dir, transform=None):
+#         """
+#         Args:
+#             root_dir (string): Directory with all the images.
+#             transform (callable, optional): Optional transform to be applied
+#                 on a sample.
+#         """
+#         self.root_dir = root_dir
+#         self.transform = transform
+#         self.styles = get_classes(self.root_dir)
 
-x,y = get_train_test_loader("D:\\WikiArt\\wikiart\\",4,3)
-print(x)
-print(y)
+#     def __len__(self):
+#         """
+#         Override
+
+#         Gets length of dataset
+
+#         """
+#         folders = os.listdir(self.root_dir)
+#         styles={}
+#         length = 0
+#         for f in folders:
+#             styles[f]=len(os.listdir(os.path.join(self.root_dir,f)))
+#         for key,value in styles.items():
+#             length += value
+#         return length
+
+#     def __getitem__(self, idx,style ):
+#         """
+#         Override
+            
+#         Gets a particular image sample
+
+#         """
+#         img_name = os.path.join(self.root_dir,idx)
+#         image = io.imread(img_name)
+#         # Get the style
+#         start_idx = img_name.find("art\\")+4
+#         modded = img_name[start_idx:]
+#         stop_idx = modded.find("\\")
+#         label = modded[:stop_idx]
+#         sample = {'image': image, 'label': label}
+
+#         if self.transform:
+#             sample = self.transform(sample)
+
+#         return sample
+
+# # d = WikiartDataset("D:\\WikiArt\\wikiart\\")
+# # for i in range(5):
+# #     s = d[i]
+# #     print(s['label'])
+# #print(get_length(("D:\\WikiArt\\wikiart\\")))
+# #x,y = get_train_test_loader("D:\\WikiArt\\wikiart\\",4,3)
+# #print(len(x)+len(y))
+# #print(len(y))
+
+    
+transform = transforms.Compose(
+[transforms.ToTensor(),
+transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+data = dset.ImageFolder(root="D:\\WikiArt\\wikiart\\",transform=transform)
+loader = torch.utils.data.DataLoader(data, batch_size=4,shuffle=True)
+print(data.classes)
+
+
+

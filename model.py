@@ -63,7 +63,8 @@ class GAN:
             m.bias.data.fill_(0)
 
     def train(self):
-        dataloader = torch.utils.data.DataLoader(self.dataset, batch_size=self.batch_size,
+        data = get_dataset(self.dataroot)
+        dataloader = torch.utils.data.DataLoader(data, batch_size=self.batch_size,
                                          shuffle=True, num_workers=int(self.workers))
 
         # Set the type of GAN

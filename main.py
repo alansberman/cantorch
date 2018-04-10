@@ -16,8 +16,8 @@ from torch.autograd import Variable
 
 # Args
 parser = argparse.ArgumentParser()
-parser.add_argument('--dataset', required=True, help='cifar10 | lsun | imagenet | wikiart',default='wikiart')
-parser.add_argument('--dataroot', required=True, help='path to dataset',default="D:\\WikiArt\\wikiart\\")
+parser.add_argument('--dataset',  help='cifar10 | lsun | imagenet | wikiart',default='wikiart')
+parser.add_argument('--dataroot', help='path to dataset',default="D:\\WikiArt\\wikiart\\")
 parser.add_argument('--workers', type=int, help='number of data loading workers', default=1)
 parser.add_argument('--gan_type', type=str, help='dcgan | wgan | can', default='dcgan')
 parser.add_argument('--batch_size', type=int, default=64, help='input batch size')
@@ -39,17 +39,17 @@ parser.add_argument('--manual_seed', type=int, help='manual seed')
 
 options = parser.parse_args()
 try:
-    os.makedirs(options.outf)
+    os.makedirs(options.out_folder)
 except OSError:
     pass
 
-if options.manualSeed is None:
-    options.manualSeed = random.randint(1, 10000)
-print("Random Seed: ", options.manualSeed)
-random.seed(options.manualSeed)
-torch.manual_seed(options.manualSeed)
+if options.manual_seed is None:
+    options.manual_seed = random.randint(1, 10000)
+print("Random Seed: ", options.manual_seed)
+random.seed(options.manual_seed)
+torch.manual_seed(options.manual_seed)
 if options.cuda:
-    torch.cuda.manual_seed_all(options.manualSeed)
+    torch.cuda.manual_seed_all(options.manual_seed)
 
 cudnn.benchmark = True
 def main():

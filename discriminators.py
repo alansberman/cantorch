@@ -34,10 +34,19 @@ class DcganDiscriminator(nn.Module):
             # state size. (num_disc_filters*8) x 4 x 4
             # 2nd arg was 1
             nn.Conv2d(num_disc_filters * 8, num_disc_filters * 16 , 4, 1, 0, bias=False),
-            nn.BatchNorm2d(num_disc_filters * 8),
+            #nn.Conv2d(num_disc_filters * 8, 1 , 4, 1, 0, bias=False),
+
+            nn.BatchNorm2d(num_disc_filters * 16),
             nn.LeakyReLU(0.2, inplace=True),
-            nn.Conv2d(num_disc_filters * 16, 1 , 4, 1, 0, bias=False),
+            nn.Conv2d(num_disc_filters * 16, 1 , 1, 1, 0, bias=False),
             nn.Sigmoid()
+
+            # nn.Conv2d(ndf * 4, ndf * 8, 4, 2, 1, bias=False),
+            # nn.BatchNorm2d(ndf * 8),
+            # nn.LeakyReLU(0.2, inplace=True),
+            # # state size. (ndf*8) x 4 x 4
+            # nn.Conv2d(ndf * 8, 1, 4, 1, 0, bias=False),
+
         )
     
     def forward(self, inp):
