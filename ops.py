@@ -42,7 +42,13 @@ def get_styles(data_dir):
     styles={}
     for f in folders:
         styles[f]=len(os.listdir(os.path.join(data_dir,f)))
+    count = 0
+    for key, val in styles.items():
+        styles[key] = count
+        count += 1
     return styles        
+
+
 
 def get_length(data_dir):
     folders = os.listdir(data_dir)
@@ -179,71 +185,118 @@ def get_train_test_loader(data_dir,
 
     return (train_loader, test_loader)
 
-# class WikiartDataset(Dataset):
-#     def __init__(self, root_dir, transform=None):
-#         """
-#         Args:
-#             root_dir (string): Directory with all the images.
-#             transform (callable, optional): Optional transform to be applied
-#                 on a sample.
-#         """
-#         self.root_dir = root_dir
-#         self.transform = transform
-#         self.styles = get_classes(self.root_dir)
+class WikiartDataset(Dataset):
+    def __init__(self, root_dir, transform=None):
+        """
+        Args:
+            root_dir (string): Directory with all the images.
+            transform (callable, optional): Optional transform to be applied
+                on a sample.
+        """
+        self.root_dir = root_dir
+        self.transform = transform
 
-#     def __len__(self):
-#         """
-#         Override
+    def __len__(self):
+        """
+        Override
 
-#         Gets length of dataset
+        Gets length of dataset
 
-#         """
-#         folders = os.listdir(self.root_dir)
-#         styles={}
-#         length = 0
-#         for f in folders:
-#             styles[f]=len(os.listdir(os.path.join(self.root_dir,f)))
-#         for key,value in styles.items():
-#             length += value
-#         return length
+        """
+        return len(os.listdir(self.root_dir))
 
-#     def __getitem__(self, idx,style ):
-#         """
-#         Override
+
+
+    def __getitem__(self, idx ):
+        """
+        Override
             
-#         Gets a particular image sample
+        Gets the contents of a particular style
 
-#         """
-#         img_name = os.path.join(self.root_dir,idx)
-#         image = io.imread(img_name)
-#         # Get the style
-#         start_idx = img_name.find("art\\")+4
-#         modded = img_name[start_idx:]
-#         stop_idx = modded.find("\\")
-#         label = modded[:stop_idx]
-#         sample = {'image': image, 'label': label}
+        """
+        s = get_styles(self.root_dir)
+        styles = {v:k for k,v in s.items()}
+        style = styles[idx]
+        
+        #style = styles[index]
+        images = os.listdir(os.path.join(self.root_dir,style))
 
-#         if self.transform:
-#             sample = self.transform(sample)
+       # sample = ({'style': )style, 'images': images}
 
-#         return sample
+        if self.transform:
+            images = self.transform(images)
 
-# # d = WikiartDataset("D:\\WikiArt\\wikiart\\")
+        return style,images
+
+class StyleDataset(Dataset):
+    def __init__(self, root_dir, style, transform=None):
+        """
+        Args:
+            root_dir (string): Directory with all the images.
+            transform (callable, optional): Optional transform to be applied
+                on a sample.
+        """
+        self.root_dir = root_dir
+        self.transform = transform
+        # Annoying mapping from style string e.g. Realism to an int representing its position in the parent folder (e.g. 21)
+        # Needed because pytorch *has* to have indexing in its datasets
+        chosen_style = WikiartDataset(self.root_dir)
+        s = get_styles(self.root_dir)
+        idx = s[style]
+        self.style, self.images_ = chosen_style[idx]
+
+
+    def __len__(self):
+        """
+        Override
+
+        Gets length of style 
+
+        """
+        return len(self.images_)
+       
+
+
+    def __getitem__(self, idx ):
+        """
+        Override
+            
+        Gets a particular image sample
+
+        """
+        path = os.path.join(self.root_dir,self.style)
+        idx = str(idx)+".jpg"
+        img_name = os.path.join(path,idx)
+        image = io.imread(img_name)
+        sample = {'image': image, 'style': self.style}
+
+        if self.transform:
+            sample = self.transform(sample)
+
+        return sample
+
+d = WikiartDataset("D:\\WikiArt\\wikiart\\")
+
+#print(d[0])
+#print(d[0]['style'])
+t = StyleDataset("D:\\WikiArt\\wikiart\\",d[0][0])
+
+for i in range(5):
+    print(t[i])
 # # for i in range(5):
 # #     s = d[i]
 # #     print(s['label'])
 # #print(get_length(("D:\\WikiArt\\wikiart\\")))
-# #x,y = get_train_test_loader("D:\\WikiArt\\wikiart\\",4,3)
+# #x,y = get_train_test_loader("D:\\WikiArt\\wclikiart\\",4,3)
 # #print(len(x)+len(y))
 # #print(len(y))
 
     
-transform = transforms.Compose(
-[transforms.ToTensor(),
-transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
-data = dset.ImageFolder(root="D:\\WikiArt\\wikiart\\",transform=transform)
-loader = torch.utils.data.DataLoader(data, batch_size=4,shuffle=True)
-print(data.classes)
-
+# transform = transforms.Compose(
+# [transforms.ToTensor(),
+# transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+# data = dset.ImageFolder(root="D:\\WikiArt\\wikiart\\",transform=transform)
+# loader = torch.utils.data.DataLoader(data, batch_size=4,shuffle=True)
+# print((data[13430][1]))
 
 
