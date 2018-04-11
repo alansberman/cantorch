@@ -281,8 +281,8 @@ d = WikiartDataset("D:\\WikiArt\\wikiart\\")
 #print(d[0]['style'])
 t = StyleDataset("D:\\WikiArt\\wikiart\\",d[0][0])
 
-for i in range(5):
-    print(t[i])
+# for i in range(5):
+#     print(t[i])
 # # for i in range(5):
 # #     s = d[i]
 # #     print(s['label'])

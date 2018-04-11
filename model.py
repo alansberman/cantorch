@@ -87,7 +87,7 @@ class GAN:
         if self.disc_path != '':
             self.discriminator.load_state_dict(torch.load(self.disc_path))
         print(self.discriminator)
-            
+        print(self.generator)
         criterion = nn.BCELoss()
 
         inp = torch.FloatTensor(self.batch_size, 3, self.image_size, self.image_size)
@@ -159,7 +159,7 @@ class GAN:
                         errD.data[0], errG.data[0], D_x, D_G_z1, D_G_z2))
                 if i % 100 == 0:
                     vutils.save_image(real_cpu,
-                            '%s/real_samples.png' % self.out_folder,
+                            '%s/real_samples_%03d.png' % (self.out_folder,i),
                             normalize=True)
                     fake = self.generator(fixed_noise)
                     vutils.save_image(fake.data,

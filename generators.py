@@ -11,14 +11,58 @@ from torch.autograd import Variable
 
 # Base dcgan generator
 class DcganGenerator(nn.Module):
-    
+    """
+
+    Finally, convert this high level representation into a 256 × 256 pixel image. In
+    other words, starting from z ∈ R
+    100 → 4 × 4 × 1024 → 8 × 8 × 1024 → 16 × 16 × 512 →
+    32 × 32 × 256 → 64 × 64 × 128 → 128 × 128 × 64 → 256 × 256 × 3 (the generated image size).
+
+    """
     def __init__(self, z_noise, channels, num_gen_filters):
         super(DcganGenerator,self).__init__()
         self.main = nn.Sequential(
             # inp is Z, going into a convolution
             # torch.nn.Conv1d(in_channels, out_channels, kernel_size, stride=1, padding=0, dilation=1, groups=1, 
+            # 6 layers, stride 2 , 1 padding
+            # torch.nn.Conv2d(in_channels, out_channels, kernel_size, stride=1, padding=0, dilation=1, groups=1, bias=True
+    
+            # # Layer 1 100 -> 4x4x1024
+            # nn.ConvTranspose2d( z_noise, num_gen_filters * 16, kernel_size=4, stride=1, padding=0, bias=False),
+            # # batch norm??
+            # nn.ReLU(True),
 
-            nn.ConvTranspose2d(z_noise, num_gen_filters * 8, 4, 1, 0, bias=False),
+            # # Layer 2 -> 8x8x1024
+            # nn.ConvTranspose2d( num_gen_filters*16, num_gen_filters * 16, kernel_size=8, stride=2, padding=1, bias=False),
+            # # batch norm??
+            # nn.ReLU(True),
+
+            # # Layer 3 -> 16*16*512
+            # nn.ConvTranspose2d( num_gen_filters*16, num_gen_filters * 8, kernel_size=16, stride=2, padding=1, bias=False),
+            # # batch norm??
+            # nn.ReLU(True),
+
+            # # Layer 4 -> 32*32*256
+            # nn.ConvTranspose2d( num_gen_filters*8, num_gen_filters * 4, kernel_size=32, stride=2, padding=1, bias=False),
+            # # batch norm??
+            # nn.ReLU(True),
+
+            # # Layer 5 -> 64*64*128
+            # nn.ConvTranspose2d( num_gen_filters*4, num_gen_filters * 2, kernel_size=64, stride=2, padding=1, bias=False),
+            # # batch norm??
+            # nn.ReLU(True),
+
+            # # Layer 5 -> 128*128*64
+            # nn.ConvTranspose2d( num_gen_filters*2, num_gen_filters, kernel_size=128, stride=2, padding=1, bias=False),
+            # # batch norm??
+            # nn.ReLU(True),
+
+            # # Layer 6 -> 64*64*3
+            # nn.ConvTranspose2d(num_gen_filters,  channels, kernel_size=256, stride=2, padding=1, bias=False),
+            # nn.Tanh()
+
+
+            nn.ConvTranspose2d( z_noise, num_gen_filters * 8, 4, 1, 0, bias=False),
             nn.BatchNorm2d(num_gen_filters * 8),
             nn.ReLU(True),
             # state size. (num_gen_filters*8) x 4 x 4
@@ -30,11 +74,11 @@ class DcganGenerator(nn.Module):
             nn.BatchNorm2d(num_gen_filters * 2),
             nn.ReLU(True),
             # state size. (num_gen_filters*2) x 16 x 16
-            nn.ConvTranspose2d(num_gen_filters * 2, num_gen_filters, 4, 2, 1, bias=False),
+            nn.ConvTranspose2d(num_gen_filters * 2,     num_gen_filters, 4, 2, 1, bias=False),
             nn.BatchNorm2d(num_gen_filters),
             nn.ReLU(True),
             # state size. (num_gen_filters) x 32 x 32
-            nn.ConvTranspose2d(num_gen_filters, channels, 4, 2, 1, bias=False),
+            nn.ConvTranspose2d(    num_gen_filters,  channels, 4, 2, 1, bias=False),
             nn.Tanh()
             # state size. (channels) x 64 x 64
         )
