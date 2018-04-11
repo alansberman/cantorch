@@ -90,7 +90,6 @@ class GAN:
             self.discriminator.load_state_dict(torch.load(self.disc_path))
         print(self.discriminator)
         print(self.generator)
-        #sys.exit(0)
         criterion = nn.BCELoss()
 
         inp = torch.FloatTensor(self.batch_size, 3, self.image_size, self.image_size)
@@ -130,6 +129,7 @@ class GAN:
                 labelv = Variable(label)
                
                 output = self.discriminator(inputv)
+               
                 errD_real = criterion(output, labelv)
                 errD_real.backward()
                 D_x = output.data.mean()

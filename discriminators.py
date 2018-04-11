@@ -50,39 +50,41 @@ by passing the(4 × 4 × 512) into 3 fully collected
 
     def __init__(self, image_size, channels, num_disc_filters, pow=4):
         super(DcganDiscriminator, self).__init__()
-        self.main = nn.Sequential()
+
+
+        # self.main = nn.Sequential()
       
-        # torch.nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding)
-        # Add main layers 
-        # TY https://github.com/martinarjovsky/WassersteinGAN/blob/master/models/dcgan.py
-        self.main.add_module('initial_conv.{0}-{1}'.format(channels, num_disc_filters), nn.Conv2d(channels, num_disc_filters, 4, 2, 1, bias=False))
-        self.main.add_module('initial_relu.{0}'.format(num_disc_filters), nn.LeakyReLU(0.2, inplace=True))
+        # # torch.nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding)
+        # # Add main layers 
+        # # TY https://github.com/martinarjovsky/WassersteinGAN/blob/master/models/dcgan.py
+        # self.main.add_module('initial_conv.{0}-{1}'.format(channels, num_disc_filters), nn.Conv2d(channels, num_disc_filters, 2, 2, 1, bias=False))
+        # self.main.add_module('initial_relu.{0}'.format(num_disc_filters), nn.LeakyReLU(0.2, inplace=True))
 
 
-        #filter_size = image_size // 2
-        current_disc_filters = num_disc_filters
-        stop = num_disc_filters*(2*pow)
+        # #filter_size = image_size // 2
+        # current_disc_filters = num_disc_filters
+        # stop = num_disc_filters*(2*pow)
 
-        while current_disc_filters < stop:
+        # while current_disc_filters < stop:
            
-            # Set num of input and output features
-            input_features = current_disc_filters
-            output_features = current_disc_filters * 2
-            # Add the next layer
-            self.main.add_module('conv_layer.{0}-{1}'.format(input_features,output_features),nn.Conv2d(input_features,output_features, 4, 2, 1, bias=False))
-            # Batchnormalize
-            self.main.add_module('batch_norm.{0}'.format(output_features),nn.BatchNorm2d(output_features))
-            # ReLU Activation
-            self.main.add_module('relu.{0}'.format(output_features), nn.LeakyReLU(0.2, inplace=True))
-            # Update features
-            current_disc_filters = current_disc_filters * 2
-            #filter_size = filter_size // 2
+        #     # Set num of input and output features
+        #     input_features = current_disc_filters
+        #     output_features = current_disc_filters * 2
+        #     # Add the next layer
+        #     self.main.add_module('conv_layer.{0}-{1}'.format(input_features,output_features),nn.Conv2d(input_features,output_features, 2, 2, 1, bias=False))
+        #     # Batchnormalize
+        #     self.main.add_module('batch_norm.{0}'.format(output_features),nn.BatchNorm2d(output_features))
+        #     # ReLU Activation
+        #     self.main.add_module('relu.{0}'.format(output_features), nn.LeakyReLU(0.2, inplace=True))
+        #     # Update features
+        #     current_disc_filters = current_disc_filters * 2
+        #     #filter_size = filter_size // 2
         
-        # Add final layer 
-        self.main.add_module('final_layer.{0}-{1}'.format(current_disc_filters, 1), nn.Conv2d(current_disc_filters,1, 4, 1, padding=0, bias=False))
+        # # Add final layer 
+        # self.main.add_module('final_layer.{0}-{1}'.format(current_disc_filters, 1), nn.Conv2d(current_disc_filters,1, 2, 1, padding=0, bias=False))
         
-        # Sigmoid it 
-        self.main.add_module('sigmoid',nn.Sigmoid())
+        # # Sigmoid it 
+        # self.main.add_module('sigmoid',nn.Sigmoid())
 
         
         # self.main = nn.Sequential(
@@ -119,25 +121,26 @@ by passing the(4 × 4 × 512) into 3 fully collected
         #     nn.LeakyReLU(0.2, inplace=True),
         #     nn.Sigmoid()
 
-
+        self.main = nn.Sequential(
         #     # pytorchdcgan
-        #     # nn.Conv2d(channels, num_disc_filters, 4, 2, 1, bias=False),
-        #     # nn.LeakyReLU(0.2, inplace=True),
-        #     # # state size. (num_disc_filters) x 32 x 32
-        #     # nn.Conv2d(num_disc_filters, num_disc_filters * 2, 4, 2, 1, bias=False),
-        #     # nn.BatchNorm2d(num_disc_filters * 2),
-        #     # nn.LeakyReLU(0.2, inplace=True),
-        #     # # state size. (num_disc_filters*2) x 16 x 16
-        #     # nn.Conv2d(num_disc_filters * 2, num_disc_filters * 4, 4, 2, 1, bias=False),
-        #     # nn.BatchNorm2d(num_disc_filters * 4),
-        #     # nn.LeakyReLU(0.2, inplace=True),
-        #     # # state size. (num_disc_filters*4) x 8 x 8
-        #     # nn.Conv2d(num_disc_filters * 4, num_disc_filters * 8, 4, 2, 1, bias=False),
-        #     # nn.BatchNorm2d(num_disc_filters * 8),
-        #     # nn.LeakyReLU(0.2, inplace=True),
-        #     # # state size. (num_disc_filters*8) x 4 x 4
-        #     # nn.Conv2d(num_disc_filters * 8, 1, 4, 1, 0, bias=False),
-        #     # nn.Sigmoid()
+        nn.Conv2d(channels, num_disc_filters, 4, 2, 1, bias=False),
+        nn.LeakyReLU(0.2, inplace=True),
+        # state size. (num_disc_filters) x 32 x 32
+        nn.Conv2d(num_disc_filters, num_disc_filters * 2, 4, 2, 1, bias=False),
+        nn.BatchNorm2d(num_disc_filters * 2),
+        nn.LeakyReLU(0.2, inplace=True),
+        # state size. (num_disc_filters*2) x 16 x 16
+        nn.Conv2d(num_disc_filters * 2, num_disc_filters * 4, 4, 2, 1, bias=False),
+        nn.BatchNorm2d(num_disc_filters * 4),
+        nn.LeakyReLU(0.2, inplace=True),
+        # state size. (num_disc_filters*4) x 8 x 8
+        nn.Conv2d(num_disc_filters * 4, num_disc_filters * 8, 4, 2, 1, bias=False),
+        nn.BatchNorm2d(num_disc_filters * 8),
+        nn.LeakyReLU(0.2, inplace=True),
+        # state size. (num_disc_filters*8) x 4 x 4
+        nn.Conv2d(num_disc_filters * 8, 1, 4, 1, 0, bias=False),
+        nn.Sigmoid()
+        )
 
 
         #     # nn.Conv2d(num_disc_filters * 8, num_disc_filters * 16 , 4, 1, 0, bias=False),
@@ -162,9 +165,11 @@ by passing the(4 × 4 × 512) into 3 fully collected
             output = nn.parallel.data_parallel(self.main, inp, range(self.ngpu))
         else:
             output = self.main(inp)
-        output = output.mean(0)
-        #return output.view(-1, 1).squeeze(1)
-        return output.view(1)
+        #output = output.mean(0)
+        #print(output)
+        return output.view(-1, 1).squeeze(1)
+
+        #return output.view(1)
 
 
 # CAN discriminator
