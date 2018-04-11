@@ -8,7 +8,7 @@ import torchvision.datasets as dset
 import torchvision.transforms as transforms
 import torchvision.utils as vutils
 from torch.autograd import Variable
-
+import sys
 # Base dcgan discriminator
 class DcganDiscriminator(nn.Module):
     """
@@ -48,9 +48,10 @@ by passing the(4 × 4 × 512) into 3 fully collected
     """
 
 
-    def __init__(self, image_size, channels, num_disc_filters, num_extra_layers=0):
+    def __init__(self, image_size, channels, num_disc_filters, pow=4):
         super(DcganDiscriminator, self).__init__()
         self.main = nn.Sequential()
+      
         # torch.nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding)
         # Add main layers 
         # TY https://github.com/martinarjovsky/WassersteinGAN/blob/master/models/dcgan.py
@@ -58,12 +59,15 @@ by passing the(4 × 4 × 512) into 3 fully collected
         self.main.add_module('initial_relu.{0}'.format(num_disc_filters), nn.LeakyReLU(0.2, inplace=True))
 
 
-        filter_size = image_size // 2
+        #filter_size = image_size // 2
         current_disc_filters = num_disc_filters
-        
-        while filter_size > 4:
+        stop = num_disc_filters*(2*pow)
+
+        while current_disc_filters < stop:
+           
             # Set num of input and output features
-            input_features, output_features = current_disc_filters, current_disc_filters * 2
+            input_features = current_disc_filters
+            output_features = current_disc_filters * 2
             # Add the next layer
             self.main.add_module('conv_layer.{0}-{1}'.format(input_features,output_features),nn.Conv2d(input_features,output_features, 4, 2, 1, bias=False))
             # Batchnormalize
@@ -71,11 +75,12 @@ by passing the(4 × 4 × 512) into 3 fully collected
             # ReLU Activation
             self.main.add_module('relu.{0}'.format(output_features), nn.LeakyReLU(0.2, inplace=True))
             # Update features
-            current_disc_filters *= 2
-            filter_size = filter_size // 2
+            current_disc_filters = current_disc_filters * 2
+            #filter_size = filter_size // 2
         
         # Add final layer 
-        self.main.add_module('final_layer.{0}-{1}'.format(num_disc_filters, 1), nn.Conv2d(num_disc_filters, 1, 4, 2, 1, bias=False))
+        self.main.add_module('final_layer.{0}-{1}'.format(current_disc_filters, 1), nn.Conv2d(current_disc_filters,1, 4, 1, padding=0, bias=False))
+        
         # Sigmoid it 
         self.main.add_module('sigmoid',nn.Sigmoid())
 
@@ -157,9 +162,9 @@ by passing the(4 × 4 × 512) into 3 fully collected
             output = nn.parallel.data_parallel(self.main, inp, range(self.ngpu))
         else:
             output = self.main(inp)
-
-        return output.view(-1, 1).squeeze(1)
-
+        output = output.mean(0)
+        #return output.view(-1, 1).squeeze(1)
+        return output.view(1)
 
 
 # CAN discriminator

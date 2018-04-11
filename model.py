@@ -12,6 +12,7 @@ from ops import *
 from discriminators import *
 import random
 import torch
+import sys
 import torch.nn as nn
 import torch.nn.parallel
 import torch.backends.cudnn as cudnn
@@ -34,7 +35,7 @@ class GAN:
         self.workers = options.workers 
         self.type = options.gan_type
         self.batch_size = options.batch_size
-        self.num_extra_layers = options.num_extra_layers
+        self.pow = options.pow
         self.image_size = options.image_size
         self.lr = options.lr
         self.z_noise = options.z_noise
@@ -70,10 +71,10 @@ class GAN:
 
         # Set the type of GAN
         if self.type == "dcgan": #isize, nz, nc, ndf, ngpu, n_extra_layers=0)
-            self.generator = DcganGenerator(self.z_noise, self.image_size, self.channels, self.num_gen_filters, self.num_extra_layers)
-            self.discriminator = DcganDiscriminator(self.image_size,self.channels, self.num_disc_filters, self.num_extra_layers)
+            self.generator = DcganGenerator(self.z_noise, self.image_size, self.channels, self.num_gen_filters, self.pow)
+            self.discriminator = DcganDiscriminator(self.image_size,self.channels, self.num_disc_filters, self.pow)
             criterion = nn.BCELoss()
-        
+
         elif self.type == "can":
             self.generator = CanGenerator
             self.discriminator = CanDiscriminator
@@ -89,6 +90,7 @@ class GAN:
             self.discriminator.load_state_dict(torch.load(self.disc_path))
         print(self.discriminator)
         print(self.generator)
+        #sys.exit(0)
         criterion = nn.BCELoss()
 
         inp = torch.FloatTensor(self.batch_size, 3, self.image_size, self.image_size)
@@ -126,7 +128,7 @@ class GAN:
                 label.resize_(batch_size).fill_(real_label)
                 inputv = Variable(inp)
                 labelv = Variable(label)
-
+               
                 output = self.discriminator(inputv)
                 errD_real = criterion(output, labelv)
                 errD_real.backward()

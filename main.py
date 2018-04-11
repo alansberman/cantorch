@@ -26,7 +26,7 @@ parser.add_argument('--z_noise', type=int, default=100, help='size of the latent
 parser.add_argument('--y_dim',type=int,help="number of output/target classes",default=27)
 parser.add_argument('--channels',type=int,help="number of image channels",default=3)
 parser.add_argument('--num_gen_filters', type=int, default=64)
-parser.add_argument('--num_extra_layers', type=int, default=0)
+parser.add_argument('--pow', type=int, default=4)
 parser.add_argument('--num_disc_filters', type=int, default=64)
 parser.add_argument('--num_epochs', type=int, default=25, help='number of epochs to train for')
 parser.add_argument('--lr', type=float, default=0.0002, help='learning rate, default=0.0002')

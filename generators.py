@@ -6,6 +6,7 @@ import torch.optim as optim
 import torch.utils.data
 import torchvision.datasets as dset
 import torchvision.transforms as transforms
+import sys
 import torchvision.utils as vutils
 from torch.autograd import Variable
 
@@ -19,7 +20,7 @@ class DcganGenerator(nn.Module):
     32 × 32 × 256 → 64 × 64 × 128 → 128 × 128 × 64 → 256 × 256 × 3 (the generated image size).
 
     """
-    def __init__(self, z_noise, image_size, channels, num_gen_filters, num_extra_layers=0):
+    def __init__(self, z_noise, image_size, channels, num_gen_filters, pow=4):
         super(DcganGenerator,self).__init__()
         self.main = nn.Sequential()
         # torch.nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding)
@@ -29,13 +30,10 @@ class DcganGenerator(nn.Module):
         self.main.add_module('initial_batch_norm.{0}'.format(num_gen_filters),nn.BatchNorm2d(num_gen_filters))
         self.main.add_module('initial_relu.{0}'.format(num_gen_filters), nn.LeakyReLU(0.2, inplace=True))
 
-
-        filter_size = 4
-        current_gen_filters = num_gen_filters
+        current_gen_filters = num_gen_filters*(2*pow)
+        #     num_disc_filters = num_gen_filters
         
-        while (filter_size < (image_size//2)):
-            # Set num of input and output features
-            input_features, output_features = current_gen_filters, current_gen_filters * 2
+        while current_gen_filters > num_gen_filters:
             # Add the next layer
             self.main.add_module('conv_transpose_layer.{0}-{1}'.format(current_gen_filters,current_gen_filters//2),
             nn.Conv2d(current_gen_filters,current_gen_filters//2, 4, 2, 1, bias=False))
@@ -45,10 +43,10 @@ class DcganGenerator(nn.Module):
             self.main.add_module('relu.{0}'.format(current_gen_filters//2), nn.LeakyReLU(0.2, inplace=True))
             # Update features
             current_gen_filters = current_gen_filters // 2
-            filter_size = filter_size * 2
+            
         
         # Add final layer 
-        self.main.add_module('final_layer.{0}-{1}'.format(current_gen_filters, channels), nn.Conv2d(current_gen_filters, channels, 4, 2, 1, bias=False))
+        self.main.add_module('final_layer.{0}-{1}'.format(num_gen_filters, channels), nn.Conv2d(num_gen_filters, channels, 4, 2, 1, bias=False))
         # Tanh it 
         self.main.add_module('tanh',nn.Tanh())
 
