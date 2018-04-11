@@ -34,6 +34,7 @@ class GAN:
         self.workers = options.workers 
         self.type = options.gan_type
         self.batch_size = options.batch_size
+        self.num_extra_layers = options.num_extra_layers
         self.image_size = options.image_size
         self.lr = options.lr
         self.z_noise = options.z_noise
@@ -68,9 +69,9 @@ class GAN:
                                          shuffle=True, num_workers=int(self.workers))
 
         # Set the type of GAN
-        if self.type == "dcgan":
-            self.generator = DcganGenerator(self.z_noise, self.channels, self.num_gen_filters)
-            self.discriminator = DcganDiscriminator(self.channels, self.num_disc_filters)
+        if self.type == "dcgan": #isize, nz, nc, ndf, ngpu, n_extra_layers=0)
+            self.generator = DcganGenerator(self.z_noise, self.image_size, self.channels, self.num_gen_filters, self.num_extra_layers)
+            self.discriminator = DcganDiscriminator(self.image_size,self.channels, self.num_disc_filters, self.num_extra_layers)
             criterion = nn.BCELoss()
         
         elif self.type == "can":
