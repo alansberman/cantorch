@@ -24,7 +24,6 @@ import numpy as np
 from torch.utils.data.sampler import SubsetRandomSampler
 
 
-# functions to show an image\
 def imshow(img):
     img = img / 2 + 0.5     # unnormalize
     npimg = img.numpy()
@@ -76,114 +75,14 @@ def get_labels(data):
 def get_image(image_path, mode):
     image = Image.open(image_path)
     return np.array(image.convert(mode))
-# ty gangogh
-
-def get_train_and_test_sets(styles,split_percentage):
-    train_set_image_names = {}
-    train_set_image_names = {}
-    for key,value in styles.items():
-        number_per_style = range(value)
-        random.shuffle(list(number_per_style))
-        train_set_image_names[key] = number_per_style[:value//split_percentage]
-        train_set_image_names[key] = number_per_style[value//split_percentage:]
-    return train_set_image_names, train_set_image_names
-
-def test():
-    
-    transform = transforms.Compose(
-    [transforms.ToTensor(),
-    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
-    trainset = dset.ImageFolder(root="D:\\WikiArt\\wikiart\\",transform=transform)
-    trainloader = torch.utils.data.DataLoader(trainset, batch_size=4,shuffle=True)
-
-
-#    testset = dset.ImageFolder(root='tests',transform=transform)
-
-    classes= get_classes("D:\\WikiArt\\wikiart\\")
-
-    
-
-    # get some random training images
-    dataiter = iter(trainloader)
-    images, labels = dataiter.next()
-
-    # show images
-    imshow(vutils.make_grid(images))
-    # print labels
-    print(' '.join('%5s' % classes[labels[j]] for j in range(4)))
 
 
 def get_dataset(path):
     transform = transforms.Compose(
     [transforms.ToTensor(),
     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
-    data = dset.ImageFolder(root="D:\\WikiArt\\wikiart\\",transform=transform)
+    data = dset.ImageFolder(root=path,transform=transform)  
     return data
-
-# Mille grazie https://gist.github.com/kevinzakka/d33bf8d6c7f06a9d8c76d97a7879f5cb
-
-
-def get_train_test_loader(data_dir,
-                           batch_size,
-                           random_seed,
-                           valid_size=0.1,
-                           shuffle=True,
-                           show_sample=False,
-                           num_workers=1,
-                           pin_memory=True):
-    """
-    Utility function for loading and returning train and valid
-    multi-process iterators over the CIFAR-10 dataset. A sample
-    9x9 grid of the images can be optionally displayed.
-    If using CUDA, num_workers should be set to 1 and pin_memory to True.
-    Params
-    ------
-    - data_dir: path directory to the dataset.
-    - batch_size: how many samples per batch to load.
-    - augment: whether to apply the data augmentation scheme
-      mentioned in the paper. Only applied on the train split.
-    - random_seed: fix seed for reproducibility.
-    - valid_size: percentage split of the training set used for
-      the validation set. Should be a float in the range [0, 1].
-    - shuffle: whether to shuffle the train/validation indices.
-    - show_sample: plot 9x9 sample grid of the dataset.
-    - num_workers: number of subprocesses to use when loading the dataset.
-    - pin_memory: whether to copy tensors into CUDA pinned memory. Set it to
-      True if using GPU.
-    Returns
-    -------
-    - train_loader: training set iterator.
-    - valid_loader: validation set iterator.
-    """
-   
-    transform = transforms.Compose(
-    [transforms.ToTensor(),
-    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
-    data = dset.ImageFolder(root=data_dir,transform=transform)
-    dataset_length = get_length(data_dir)
-    num_train = int(np.floor((dataset_length)*(1-valid_size)))
-    
-    indices = list(range(dataset_length))
-    #split = int(np.floor(valid_size * num_train))
-    if shuffle:
-        np.random.seed(random_seed)
-        np.random.shuffle(indices)
-    train_idx, test_idx = indices[:num_train], indices[num_train:]
-
-    train_sampler = SubsetRandomSampler(train_idx)
-    test_sampler = SubsetRandomSampler(test_idx)
-
-    train_loader = torch.utils.data.DataLoader(
-        data, batch_size=batch_size, sampler=train_sampler,
-        num_workers=num_workers, pin_memory=pin_memory,
-    )
-    test_loader = torch.utils.data.DataLoader(
-        data, batch_size=batch_size, sampler=test_sampler,
-        num_workers=num_workers, pin_memory=pin_memory,
-    )
-
-
-    return (train_loader, test_loader)
 
 class WikiartDataset(Dataset):
     def __init__(self, root_dir, transform=None):
@@ -275,28 +174,19 @@ class StyleDataset(Dataset):
 
         return sample
 
-d = WikiartDataset("D:\\WikiArt\\wikiart\\")
+# Thanks to https://github.com/znxlwm/pytorch-generative-model-collections/blob/master/utils.py
+def get_loss_graphs(train_history, path, model_name):
 
-#print(d[0])
-#print(d[0]['style'])
-t = StyleDataset("D:\\WikiArt\\wikiart\\",d[0][0])
-
-# for i in range(5):
-#     print(t[i])
-# # for i in range(5):
-# #     s = d[i]
-# #     print(s['label'])
-# #print(get_length(("D:\\WikiArt\\wikiart\\")))
-# #x,y = get_train_test_loader("D:\\WikiArt\\wclikiart\\",4,3)
-# #print(len(x)+len(y))
-# #print(len(y))
-
-    
-# transform = transforms.Compose(
-# [transforms.ToTensor(),
-# transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
-# data = dset.ImageFolder(root="D:\\WikiArt\\wikiart\\",transform=transform)
-# loader = torch.utils.data.DataLoader(data, batch_size=4,shuffle=True)
-# print((data[13430][1]))
-
-
+    x = range(len(train_history['gen_loss']))
+    y_1 = train_history['disc_loss']
+    y_2 = train_history['gen_loss']
+    plt.plot(x,y_1,label="Discriminator Loss")
+    plt.plot(x,y_2,label="Generator Loss")
+    plt.xlabel("Epoch")
+    plt.ylabel("Loss")
+    plt.legend(loc=4)
+    plt.grid(True)
+    plt.tight_layout()
+    path = os.path.join(path,model_name+"_loss_graph.png")
+    plt.savefig(path)
+    plt.close()
