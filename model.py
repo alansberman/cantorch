@@ -84,12 +84,13 @@ class GAN:
         style_labels = torch.LongTensor(self.batch_size)
         if self.cuda:
             style_labels = style_labels.cuda()
-        
 
         # Clamp as per WGAN (better training)
         for param in self.discriminator.parameters():
-            param.data.clamp_(self.lower_clamp,self.upper_clamp)
-
+            param.requires_grad = True
+            if self.type == 'wgan':
+                param.data.clamp_(self.lower_clamp,self.upper_clamp)
+            
         data = data_iterator.next()
 
         # train with real
@@ -149,13 +150,18 @@ class GAN:
         includes style classification loss if creating a CAN
 
         '''
+  
         self.generator.zero_grad()     
+
+
         label_var = Variable(label.fill_(1))  # fake labels are real for generator cost
         if self.type == 'can':
             output, batch_labels = self.discriminator(fake) #can't say detach() for some reason
         else:
             output = self.discriminator(fake)
 
+        print(type(output), "Type of output")
+        print(output,"output")
         # Normal GAN loss
         err_gen = criterion(output, label_var)
         err_gen.backward(retain_graph=True)
@@ -202,6 +208,7 @@ class GAN:
             criterion = wgan_loss()
 
         self.discriminator.apply(self.weights_init)
+        self.generator.apply(self.weights_init) 
 
         if self.disc_path != '':
             self.discriminator.load_state_dict(torch.load(self.disc_path))
@@ -258,6 +265,11 @@ class GAN:
                 # Will set false in G
                 for param in self.discriminator.parameters():
                     param.requires_grad = True
+
+                # Freeze generator
+                for p in self.generator.parameters():
+                    p.requires_grad = False
+
                 j=0
                 # Train the discriminator disc_iterations times for every 1 generator training
                 while j < self.disc_iterations and i < len(dataloader):
@@ -268,11 +280,16 @@ class GAN:
                         disc_loss,fake,disc_x,disc_gen_z_1, real_image = self.train_discriminator(data_iterator,criterion,inp,label,noise)
                     i+=1
 
-                # Train generatoe
+                # Train generator
                 # Freeze disc
-                for param in self.discriminator.parameters():
-                    param.requires_grad = False
+                for par in self.discriminator.parameters():
+                    par.requires_grad = False
 
+                # Unfreeze generator
+                for item in self.generator.parameters():
+                    item.requires_grad = True
+
+      
                 if self.type=='can':
                     gen_loss, disc_gen_z_2 = self.train_generator(noise,label,fake,criterion,gen_style_labels,style_criterion)
                 else:
@@ -305,8 +322,8 @@ class GAN:
             self.train_history['gen_loss'].append(np.mean(gen_loss_epoch))
             
             # do checkpointing
-            torch.save(self.generator.state_dict(), '%s/netG_epoch_%d.pth' % (self.out_folder, epoch))
-            torch.save(self.discriminator.state_dict(), '%s/netD_epoch_%d.pth' % (self.out_folder, epoch))
+            #torch.save(self.generator.state_dict(), '%s/netG_epoch_%d.pth' % (self.out_folder, epoch))
+            #torch.save(self.discriminator.state_dict(), '%s/netD_epoch_%d.pth' % (self.out_folder, epoch))
         
         get_loss_graphs(self.train_history,self.out_folder,self.gan_type)
 

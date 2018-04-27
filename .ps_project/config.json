@@ -1,0 +1,6 @@
+{
+  "project": "cantorch",
+  "container": "Test-Container",
+  "command": "nvidia-smi",
+  "lastJobId": "jvkrrfdmlm88"
+}
