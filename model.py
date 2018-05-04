@@ -160,8 +160,6 @@ class GAN:
         else:
             output = self.discriminator(fake)
 
-        print(type(output), "Type of output")
-        print(output,"output")
         # Normal GAN loss
         err_gen = criterion(output, label_var)
         err_gen.backward(retain_graph=True)
@@ -193,8 +191,12 @@ class GAN:
             criterion = nn.BCELoss()
 
         elif self.type == "can":
-            self.generator = CanGenerator(self.z_noise, self.image_size, self.channels, self.num_gen_filters, self.power)
-            self.discriminator = CanDiscriminator(self.image_size,self.channels,self.y_dim, self.num_disc_filters, self.power)
+            if self.image_size == 64:
+                self.generator = Can64Generator(self.z_noise, self.image_size, self.channels, self.num_gen_filters, self.power)
+                self.discriminator = Can64Discriminator(self.image_size,self.channels,self.y_dim, self.num_disc_filters, self.power)
+            else:
+                self.generator = CanGenerator(self.z_noise, self.image_size, self.channels, self.num_gen_filters, self.power)
+                self.discriminator = CanDiscriminator(self.image_size,self.channels,self.y_dim, self.num_disc_filters, self.power)
             # 2 losses
             criterion = nn.BCELoss()
             style_criterion = nn.CrossEntropyLoss()
@@ -248,7 +250,6 @@ class GAN:
         self.disc_optimizer = optim.Adam(self.discriminator.parameters(), lr=self.lr, betas=(self.beta1, 0.999))
         self.gen_optimizer = optim.Adam(self.generator.parameters(), lr=self.lr, betas=(self.beta1, 0.999))
         
-
         # Actual training!
         for epoch in range(self.num_epochs):
             data_iterator = iter(dataloader)
@@ -266,28 +267,28 @@ class GAN:
                 for param in self.discriminator.parameters():
                     param.requires_grad = True
 
-                # Freeze generator
-                for p in self.generator.parameters():
-                    p.requires_grad = False
+                # # Freeze generator
+                # for p in self.generator.parameters():
+                #     p.requires_grad = False
 
                 j=0
                 # Train the discriminator disc_iterations times for every 1 generator training
-                while j < self.disc_iterations and i < len(dataloader):
+                while j < self.disc_iterations: #and i < len(dataloader)
                     j += 1
                     if self.type=='can':
                         disc_loss,fake,disc_x,disc_gen_z_1, real_image = self.train_discriminator(data_iterator,criterion,inp,label,noise,style_criterion)
                     else:
                         disc_loss,fake,disc_x,disc_gen_z_1, real_image = self.train_discriminator(data_iterator,criterion,inp,label,noise)
-                    i+=1
+                   
 
                 # Train generator
                 # Freeze disc
                 for par in self.discriminator.parameters():
                     par.requires_grad = False
 
-                # Unfreeze generator
-                for item in self.generator.parameters():
-                    item.requires_grad = True
+                # # Unfreeze generator
+                # for item in self.generator.parameters():
+                #     item.requires_grad = True
 
       
                 if self.type=='can':
@@ -302,14 +303,15 @@ class GAN:
                 print('[%d/%d][%d/%d] Loss_D: %.4f Loss_G: %.4f D(x): %.4f D(G(z)): %.4f / %.4f'
                     % (epoch, self.num_epochs, i, len(dataloader),
                         disc_loss.data[0], gen_loss.data[0], disc_x, disc_gen_z_1, disc_gen_z_2))
-                if i % 100 == 0:
+                if (i % 500 == 0) or i == (len(dataloader) -1):
                     vutils.save_image(real_image,
-                            '%s/real_samples_%03d.png' % (self.out_folder,i),
+                            '%s/real_samples_epoch_%03d_%04d.png' % (self.out_folder,epoch,i),
                             normalize=True)
                     fake = self.generator(fixed_noise)
                     vutils.save_image(fake.data,
-                            '%s/fake_samples_epoch_%03d.png' % (self.out_folder, epoch),
+                            '%s/fake_samples_epoch_%03d_%04d.png' % (self.out_folder, epoch,i),
                             normalize=True)
+                i+=1
 
             # Metrics for Floydhub
             print('{{"metric": "disc_loss", "value": {:.4f}}}'.format(np.mean(disc_loss_epoch)))
@@ -318,12 +320,13 @@ class GAN:
             # Get the mean of the losses over the epoch for the loss graphs
             disc_loss_epoch = np.asarray(disc_loss_epoch)
             gen_loss_epoch = np.asarray(gen_loss_epoch)
+
             self.train_history['disc_loss'].append(np.mean(disc_loss_epoch))
             self.train_history['gen_loss'].append(np.mean(gen_loss_epoch))
             
             # do checkpointing
-            #torch.save(self.generator.state_dict(), '%s/netG_epoch_%d.pth' % (self.out_folder, epoch))
-            #torch.save(self.discriminator.state_dict(), '%s/netD_epoch_%d.pth' % (self.out_folder, epoch))
+            torch.save(self.generator.state_dict(), '%s/netG_epoch_%d.pth' % (self.out_folder, epoch))
+            torch.save(self.discriminator.state_dict(), '%s/netD_epoch_%d.pth' % (self.out_folder, epoch))
         
         get_loss_graphs(self.train_history,self.out_folder,self.gan_type)
 

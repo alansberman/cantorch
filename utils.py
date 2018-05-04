@@ -13,11 +13,15 @@ import torchvision.utils as vutils
 from torch.autograd import Variable
 
 # Todo
-def can_loss():
 
-   #builds optimizers and losses
-    style_loss = nn.MultiLabelSoftMarginLoss()
-    real_vs_fake = nn.BCELoss()
+    # Pytorch
+    # To maximise, make negative
+    # discriminator
+    # minimizing −Ex∼pdata [log Dr(x) + log Dc(c = ˆc|x)] for the real images and −Ez∼pz[log(1 − Dr(G(z)))] for the generated images
+    # generator
+    # maximizing log(1 −Dr(G(z)) − sigmaK k=1((1/K)log(Dc(ck|G(z)) + (1 − (1/K)log(1 − Dc(ck|G(z)).
+
+
 
     # model.G                  = model.generator(model, model.z)
     # model.D, model.D_logits, model.D_c, model.D_c_logits     = model.discriminator(model,
