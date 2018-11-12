@@ -190,3 +190,21 @@ def get_loss_graphs(train_history, path, model_name):
     path = os.path.join(path,model_name+"_loss_graph.png")
     plt.savefig(path)
     plt.close()
+
+
+# Thanks to https://github.com/znxlwm/pytorch-generative-model-collections/blob/master/utils.py
+def get_class_loss_graph(train_history, path, model_name):
+
+    x = range(len(train_history['gen_class_loss']))
+    y_1 = train_history['disc_class_loss']
+    y_2 = train_history['gen_class_loss']
+    plt.plot(x,y_1,label="Discriminator Class Loss")
+    plt.plot(x,y_2,label="Generator Class Loss")
+    plt.xlabel("Epoch")
+    plt.ylabel("Loss")
+    plt.legend(loc=4)
+    plt.grid(True)
+    plt.tight_layout()
+    path = os.path.join(path,model_name+"_class_loss_graph.png")
+    plt.savefig(path)
+    plt.close()

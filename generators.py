@@ -18,12 +18,12 @@ class DcganGenerator(nn.Module):
         super(DcganGenerator,self).__init__()
         self.ngpu = 1
         self.main = nn.Sequential(
-
-            nn.ConvTranspose2d(z_noise, (num_gen_filters * 16 ), 4, 1, 0, bias=False),
-            nn.BatchNorm2d((num_gen_filters * 16 )),
+            # was num_gen_filters * 16
+            nn.ConvTranspose2d(z_noise, (num_gen_filters * 8 ), 4, 1, 0, bias=False),
+            nn.BatchNorm2d((num_gen_filters * 8 )),
             nn.ReLU(True),
 
-            nn.ConvTranspose2d(num_gen_filters * 16, num_gen_filters * 4, 4, 2, 1, bias=False),
+            nn.ConvTranspose2d(num_gen_filters * 8, num_gen_filters * 4, 4, 2, 1, bias=False),
             nn.BatchNorm2d(num_gen_filters * 4),
             nn.ReLU(True),
 
@@ -139,10 +139,3 @@ class CanGLoss(nn.Module):
         for i in range(1,self.y_dim+1):
             style_loss += (1/i)*torch.log(self.disc_class_layer(inp)) + (1 - (1/i))*torch.log(1-self.disc_class_layer(inp))
         return style_loss*-1
-
-# WGAN generator
-class WganGenerator(nn.Module):
-    
-    def __init__(self):
-        super(WganGenerator,self).__init__()
-

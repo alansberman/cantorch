@@ -16,6 +16,7 @@ import torch
 import numpy as np
 import sys
 import torch.nn as nn
+import torch.nn.functional as F
 import torch.nn.parallel
 import torch.backends.cudnn as cudnn
 import torch.optim as optim
@@ -24,7 +25,7 @@ import torchvision.datasets as dset
 import torchvision.transforms as transforms
 import torchvision.utils as vutils
 from torch.autograd import Variable
-
+import time
 
 
 # GAN
@@ -62,6 +63,8 @@ class GAN:
         self.train_history =  {}
         self.train_history['disc_loss'] = []
         self.train_history['gen_loss'] = []
+        self.train_history['disc_class_loss'] = []
+        self.train_history['gen_class_loss'] = []
         
 
     # custom weights initialization called on self.generator and self.discriminator
@@ -87,7 +90,8 @@ class GAN:
 
         # Clamp as per WGAN (better training)
         for param in self.discriminator.parameters():
-            param.requires_grad = True
+            # was not commented
+            #param.requires_grad = True
             if self.type == 'wgan':
                 param.data.clamp_(self.lower_clamp,self.upper_clamp)
             
@@ -130,9 +134,14 @@ class GAN:
         fake = self.generator(noise_var)
         label_var = Variable(label.fill_(0))
         if self.type == 'can':
+            # NEED TO LOOK AT THIS
+            # need to apply uniform penalty (as per SDGAN-art) this seems wrong...
+            # output, batch_styles = self.discriminator(label_var)
+            # uniform_penalty  = style_criterion()
             output, batch_styles = self.discriminator(fake)
         else:
             output = self.discriminator(fake)
+        
         err_disc_fake = criterion(output, label_var)
         err_disc_fake.backward(retain_graph=True)
         disc_gen_z_1 = output.data.mean()
@@ -140,9 +149,12 @@ class GAN:
         disc_loss = err_disc_real + err_disc_fake 
         # Add style loss to overall loss if a CAN
         if self.type == 'can':
-            disc_loss += err_disc_style
+            # was += err_disc_style
+            # need to / by number of classes (as per SDGAN-art)
+            err_disc_style /= self.y_dim
+            disc_loss += err_disc_style 
         self.disc_optimizer.step()
-        return disc_loss,fake,disc_x,disc_gen_z_1,real_image
+        return disc_loss,fake,disc_x,disc_gen_z_1,real_image, err_disc_style
 
     def train_generator(self,noise,label,fake,criterion,gen_style_labels=None,style_criterion=None):
         '''
@@ -161,24 +173,38 @@ class GAN:
             output = self.discriminator(fake)
 
         # Normal GAN loss
-        err_gen = criterion(output, label_var)
-        err_gen.backward(retain_graph=True)
-        gen_loss = err_gen
+        gen_loss = criterion(output, label_var)
+        gen_loss.backward(retain_graph=True)
+
+
         
         # Add style classification loss
         # but use dummy labels
         if self.type == 'can':
-            err_gen_style = style_criterion(batch_labels,gen_style_labels)
-            err_gen_style.backward()
-            gen_loss +=  err_gen_style
+                
+            gen_batch_labels = 1.0/self.y_dim * torch.ones_like(batch_labels)
+            gen_batch_labels = torch.mean(gen_batch_labels,1)
+            gen_batch_labels = gen_batch_labels.long()
+            gen_style_loss = style_criterion(batch_labels, gen_batch_labels)
+            #err_gen_style = style_criterion(batch_labels,gen_style_labels)
+            gen_style_loss.backward() 
+            gen_style_loss /= self.y_dim
+            # should be += , surely?
+            # need to / by number of classes (as per SDGAN-art)
+            gen_loss +=  gen_style_loss 
         
         disc_gen_z_2 = output.data.mean()
         self.gen_optimizer.step()
+        if self.type == 'can':
+            return gen_loss, disc_gen_z_2, gen_style_loss
         return gen_loss, disc_gen_z_2
 
     def train(self):
         print(torch.cuda.get_device_name(0),"is current GPU")
-
+        # Start timer
+        model_file = open(self.out_folder+'/model_notes.txt',"w")
+        model_file.write("Discriminator:\n")
+        start_time = time.time()
         # Get dataset
         data = get_dataset(self.dataroot)
         dataloader = torch.utils.data.DataLoader(data, batch_size=self.batch_size,
@@ -199,6 +225,7 @@ class GAN:
                 self.discriminator = CanDiscriminator(self.image_size,self.channels,self.y_dim, self.num_disc_filters, self.power)
             # 2 losses
             criterion = nn.BCELoss()
+            # averaged by default in Torch
             style_criterion = nn.CrossEntropyLoss()
             if self.cuda:
                 style_criterion.cuda()
@@ -214,9 +241,11 @@ class GAN:
 
         if self.disc_path != '':
             self.discriminator.load_state_dict(torch.load(self.disc_path))
-            
-        print(self.discriminator)
-        print(self.generator)
+
+        model_file.write("Discriminator:\n")   
+        model_file.write(str(self.discriminator))
+        model_file.write("\nGenerator:\n")   
+        model_file.write(str(self.generator))
 
         # Placeholders
         inp = torch.FloatTensor(self.batch_size, 3, self.image_size, self.image_size)
@@ -247,44 +276,67 @@ class GAN:
 
      
         # setup optimizers
-        self.disc_optimizer = optim.Adam(self.discriminator.parameters(), lr=self.lr, betas=(self.beta1, 0.999))
-        self.gen_optimizer = optim.Adam(self.generator.parameters(), lr=self.lr, betas=(self.beta1, 0.999))
+        # was Adam
+        # todo : options for SGD, RMSProp
+        self.disc_optimizer = optim.Adam(self.discriminator.parameters(), lr=self.lr)# betas=(self.beta1, 0.999))
+        self.gen_optimizer = optim.Adam(self.generator.parameters(), lr=self.lr)#, betas=(self.beta1, 0.999))
         
+        # might need to remove
+        for param in self.discriminator.parameters():
+            param.requires_grad = True
+
+        for param in self.generator.parameters():
+            param.requires_grad = True
+
         # Actual training!
         for epoch in range(self.num_epochs):
             data_iterator = iter(dataloader)
             i = 0
             
-            disc_loss_epoch =[]
+            disc_loss_epoch = []
             gen_loss_epoch = []
+            if self.type == "can":
+                disc_class_loss_epoch = []
+                gen_class_loss_epoch = []
             
             # While more batches
             # Heavily inspired by https://github.com/martinarjovsky/WassersteinGAN
             while i < len(dataloader):  
 
                 
+                
+                # not present in CAN
                 # Will set false in G
-                for param in self.discriminator.parameters():
-                    param.requires_grad = True
+                #for param in self.discriminator.parameters():
+                #    param.requires_grad = True
 
                 # # Freeze generator
                 # for p in self.generator.parameters():
                 #     p.requires_grad = False
 
                 j=0
+                # if WGAN
                 # Train the discriminator disc_iterations times for every 1 generator training
-                while j < self.disc_iterations: #and i < len(dataloader)
-                    j += 1
-                    if self.type=='can':
-                        disc_loss,fake,disc_x,disc_gen_z_1, real_image = self.train_discriminator(data_iterator,criterion,inp,label,noise,style_criterion)
-                    else:
-                        disc_loss,fake,disc_x,disc_gen_z_1, real_image = self.train_discriminator(data_iterator,criterion,inp,label,noise)
-                   
+                if self.type == "wgan":
+                    while j < self.disc_iterations: #and i < len(dataloader)
+                        j += 1
+                        if self.type=='can':
+                            disc_loss,fake,disc_x,disc_gen_z_1, real_image, disc_class_loss = self.train_discriminator(data_iterator,criterion,inp,label,noise,style_criterion)
+                        else:
+                            disc_loss,fake,disc_x,disc_gen_z_1, real_image = self.train_discriminator(data_iterator,criterion,inp,label,noise)
+
+
+                if self.type=='can':
+                    disc_loss,fake,disc_x,disc_gen_z_1, real_image, disc_class_loss = self.train_discriminator(data_iterator,criterion,inp,label,noise,style_criterion)
+                else:
+                    disc_loss,fake,disc_x,disc_gen_z_1, real_image = self.train_discriminator(data_iterator,criterion,inp,label,noise)
 
                 # Train generator
+
+                # not present in CAN
                 # Freeze disc
-                for par in self.discriminator.parameters():
-                    par.requires_grad = False
+                #for par in self.discriminator.parameters():
+                #    par.requires_grad = False
 
                 # # Unfreeze generator
                 # for item in self.generator.parameters():
@@ -292,17 +344,25 @@ class GAN:
 
       
                 if self.type=='can':
-                    gen_loss, disc_gen_z_2 = self.train_generator(noise,label,fake,criterion,gen_style_labels,style_criterion)
+                    gen_loss, disc_gen_z_2, gen_class_loss = self.train_generator(noise,label,fake,criterion,gen_style_labels,style_criterion)
+                    # as per SDGAN art, minus the uniform style loss from D
+                    disc_loss -= gen_class_loss
                 else:
                     gen_loss, disc_gen_z_2 = self.train_generator(noise,label,fake,criterion)
                
                 # Update the train history
                 disc_loss_epoch.append(disc_loss.data[0])
+
+                if self.type=="can":
+                    disc_class_loss_epoch.append(disc_class_loss.data[0])
+                    gen_class_loss_epoch.append(gen_class_loss.data[0])
+                    
+
                 gen_loss_epoch.append(gen_loss.data[0])
 
-                print('[%d/%d][%d/%d] Loss_D: %.4f Loss_G: %.4f D(x): %.4f D(G(z)): %.4f / %.4f'
+                print('[%d/%d][%d/%d] Loss_D: %.4f Loss_G: %.4f Class_D: %.4f Class_G: %.4f D(x): %.4f D(G(z)): %.4f / %.4f'
                     % (epoch, self.num_epochs, i, len(dataloader),
-                        disc_loss.data[0], gen_loss.data[0], disc_x, disc_gen_z_1, disc_gen_z_2))
+                        disc_loss.data[0], gen_loss.data[0], disc_class_loss.data[0], gen_class_loss.data[0], disc_x, disc_gen_z_1, disc_gen_z_2))
                 if (i % 500 == 0) or i == (len(dataloader) -1):
                     vutils.save_image(real_image,
                             '%s/real_samples_epoch_%03d_%04d.png' % (self.out_folder,epoch,i),
@@ -316,10 +376,19 @@ class GAN:
             # Metrics for Floydhub
             print('{{"metric": "disc_loss", "value": {:.4f}}}'.format(np.mean(disc_loss_epoch)))
             print('{{"metric": "gen_loss", "value": {:.4f}}}'.format(np.mean(gen_loss_epoch)))
+            if self.type=='can':
+                print('{{"metric": "disc_class_loss", "value": {:.4f}}}'.format(np.mean(disc_class_loss_epoch)))
+                print('{{"metric": "gen_class_loss", "value": {:.4f}}}'.format(np.mean(gen_class_loss_epoch)))
 
             # Get the mean of the losses over the epoch for the loss graphs
             disc_loss_epoch = np.asarray(disc_loss_epoch)
             gen_loss_epoch = np.asarray(gen_loss_epoch)
+            if self.type == 'can':
+                disc_class_loss_epoch = np.asarray(disc_class_loss_epoch)
+                self.train_history['disc_class_loss'].append(np.mean(disc_class_loss_epoch))
+                gen_class_loss_epoch = np.asarray(gen_class_loss_epoch)
+                self.train_history['gen_class_loss'].append(np.mean(gen_class_loss_epoch))
+
 
             self.train_history['disc_loss'].append(np.mean(disc_loss_epoch))
             self.train_history['gen_loss'].append(np.mean(gen_loss_epoch))
@@ -329,5 +398,10 @@ class GAN:
             torch.save(self.discriminator.state_dict(), '%s/netD_epoch_%d.pth' % (self.out_folder, epoch))
         
         get_loss_graphs(self.train_history,self.out_folder,self.gan_type)
+        if self.type == 'can':
+            get_class_loss_graph(self.train_history,self.out_folder,self.gan_type)
+
+        model_file.write("\nTraining time: {} seconds".format(time.time()-start_time))
+        model_file.close()
 
 
