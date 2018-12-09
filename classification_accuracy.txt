@@ -1,0 +1,782 @@
+Batch 0 style classification loss:3.3410356044769287
+Batch 0 real/fake loss:3.7669765949249268
+Batch 1 style classification loss:3.3415729999542236
+Batch 1 real/fake loss:2.3914196491241455
+Batch 2 style classification loss:3.310333251953125
+Batch 2 real/fake loss:2.8161659240722656
+Batch 3 style classification loss:3.3493714332580566
+Batch 3 real/fake loss:3.0134060382843018
+Batch 4 style classification loss:3.3258259296417236
+Batch 4 real/fake loss:2.616657257080078
+Batch 5 style classification loss:3.356738805770874
+Batch 5 real/fake loss:1.9145127534866333
+Batch 6 style classification loss:3.294633388519287
+Batch 6 real/fake loss:2.4321212768554688
+Batch 7 style classification loss:3.3255455493927
+Batch 7 real/fake loss:2.2392477989196777
+Batch 8 style classification loss:3.3249337673187256
+Batch 8 real/fake loss:2.9491991996765137
+Batch 9 style classification loss:3.3106772899627686
+Batch 9 real/fake loss:4.111886024475098
+Batch 10 style classification loss:3.349093198776245
+Batch 10 real/fake loss:1.4494099617004395
+Batch 11 style classification loss:3.32541561126709
+Batch 11 real/fake loss:2.687312126159668
+Batch 12 style classification loss:3.328580141067505
+Batch 12 real/fake loss:3.7832818031311035
+Batch 13 style classification loss:3.333570718765259
+Batch 13 real/fake loss:3.6791248321533203
+Batch 14 style classification loss:3.3103444576263428
+Batch 14 real/fake loss:4.491923809051514
+Batch 15 style classification loss:3.341475248336792
+Batch 15 real/fake loss:2.9599642753601074
+Batch 16 style classification loss:3.329728603363037
+Batch 16 real/fake loss:2.468290328979492
+Batch 17 style classification loss:3.3570616245269775
+Batch 17 real/fake loss:1.3779377937316895
+Batch 18 style classification loss:3.3341171741485596
+Batch 18 real/fake loss:3.403878927230835
+Batch 19 style classification loss:3.3180079460144043
+Batch 19 real/fake loss:4.326660633087158
+Batch 20 style classification loss:3.318235158920288
+Batch 20 real/fake loss:2.925363302230835
+Batch 21 style classification loss:3.317741870880127
+Batch 21 real/fake loss:2.1954474449157715
+Batch 22 style classification loss:3.3176510334014893
+Batch 22 real/fake loss:2.3874285221099854
+Batch 23 style classification loss:3.3342514038085938
+Batch 23 real/fake loss:2.1585681438446045
+Batch 24 style classification loss:3.28505539894104
+Batch 24 real/fake loss:1.9225146770477295
+Batch 25 style classification loss:3.3199007511138916
+Batch 25 real/fake loss:1.86813223361969
+Batch 26 style classification loss:3.3178231716156006
+Batch 26 real/fake loss:1.2671089172363281
+Batch 27 style classification loss:3.3413007259368896
+Batch 27 real/fake loss:4.083192348480225
+Batch 28 style classification loss:3.326253890991211
+Batch 28 real/fake loss:2.92651629447937
+Batch 29 style classification loss:3.3175458908081055
+Batch 29 real/fake loss:1.1292674541473389
+Batch 30 style classification loss:3.3050739765167236
+Batch 30 real/fake loss:3.7328290939331055
+Batch 31 style classification loss:3.3330790996551514
+Batch 31 real/fake loss:2.809542655944824
+Batch 32 style classification loss:3.3145501613616943
+Batch 32 real/fake loss:1.0800743103027344
+Batch 33 style classification loss:3.299806833267212
+Batch 33 real/fake loss:3.463131904602051
+Batch 34 style classification loss:3.3320059776306152
+Batch 34 real/fake loss:3.524672031402588
+Batch 35 style classification loss:3.2848570346832275
+Batch 35 real/fake loss:3.8350677490234375
+Batch 36 style classification loss:3.3260037899017334
+Batch 36 real/fake loss:2.776926040649414
+Batch 37 style classification loss:3.310502052307129
+Batch 37 real/fake loss:3.3143789768218994
+Batch 38 style classification loss:3.3334527015686035
+Batch 38 real/fake loss:3.2797160148620605
+Batch 39 style classification loss:3.325950860977173
+Batch 39 real/fake loss:2.766803741455078
+Batch 40 style classification loss:3.3317720890045166
+Batch 40 real/fake loss:2.5968098640441895
+Batch 41 style classification loss:3.3489015102386475
+Batch 41 real/fake loss:1.4507255554199219
+Batch 42 style classification loss:3.3006272315979004
+Batch 42 real/fake loss:2.7022407054901123
+Batch 43 style classification loss:3.325716257095337
+Batch 43 real/fake loss:2.767399787902832
+Batch 44 style classification loss:3.3178327083587646
+Batch 44 real/fake loss:2.7509260177612305
+Batch 45 style classification loss:3.3181405067443848
+Batch 45 real/fake loss:3.1735095977783203
+Batch 46 style classification loss:3.3336403369903564
+Batch 46 real/fake loss:3.4219393730163574
+Batch 47 style classification loss:3.3174352645874023
+Batch 47 real/fake loss:3.64058780670166
+Batch 48 style classification loss:3.318159580230713
+Batch 48 real/fake loss:4.675805568695068
+Batch 49 style classification loss:3.34173321723938
+Batch 49 real/fake loss:4.495179653167725
+Batch 50 style classification loss:3.335202217102051
+Batch 50 real/fake loss:2.8286423683166504
+Batch 51 style classification loss:3.34139084815979
+Batch 51 real/fake loss:1.9865992069244385
+Batch 52 style classification loss:3.3332886695861816
+Batch 52 real/fake loss:3.1370432376861572
+Batch 53 style classification loss:3.284367561340332
+Batch 53 real/fake loss:2.8577728271484375
+Batch 54 style classification loss:3.3400700092315674
+Batch 54 real/fake loss:3.052649974822998
+Batch 55 style classification loss:3.311323404312134
+Batch 55 real/fake loss:2.854048252105713
+Batch 56 style classification loss:3.326380729675293
+Batch 56 real/fake loss:2.9458250999450684
+Batch 57 style classification loss:3.3054494857788086
+Batch 57 real/fake loss:1.8773113489151
+Batch 58 style classification loss:3.336097240447998
+Batch 58 real/fake loss:2.413177967071533
+Batch 59 style classification loss:3.334832191467285
+Batch 59 real/fake loss:2.7672104835510254
+Batch 60 style classification loss:3.3411662578582764
+Batch 60 real/fake loss:2.1999993324279785
+Batch 61 style classification loss:3.317979574203491
+Batch 61 real/fake loss:2.320561170578003
+Batch 62 style classification loss:3.3568997383117676
+Batch 62 real/fake loss:1.7446789741516113
+Batch 63 style classification loss:3.300147533416748
+Batch 63 real/fake loss:3.82607364654541
+Batch 64 style classification loss:3.3260929584503174
+Batch 64 real/fake loss:2.1861865520477295
+Batch 65 style classification loss:3.3334553241729736
+Batch 65 real/fake loss:2.1427571773529053
+Batch 66 style classification loss:3.336932420730591
+Batch 66 real/fake loss:3.472280979156494
+Batch 67 style classification loss:3.357248067855835
+Batch 67 real/fake loss:1.7216203212738037
+Batch 68 style classification loss:3.3103597164154053
+Batch 68 real/fake loss:1.9114601612091064
+Batch 69 style classification loss:3.3377835750579834
+Batch 69 real/fake loss:2.043924570083618
+Batch 70 style classification loss:3.3439087867736816
+Batch 70 real/fake loss:1.9525130987167358
+Batch 71 style classification loss:3.314499616622925
+Batch 71 real/fake loss:2.6517086029052734
+Batch 72 style classification loss:3.333393096923828
+Batch 72 real/fake loss:2.0602431297302246
+Batch 73 style classification loss:3.3257668018341064
+Batch 73 real/fake loss:2.829202175140381
+Batch 74 style classification loss:3.3022825717926025
+Batch 74 real/fake loss:2.407785177230835
+Batch 75 style classification loss:3.3257672786712646
+Batch 75 real/fake loss:2.8903894424438477
+Batch 76 style classification loss:3.324995756149292
+Batch 76 real/fake loss:2.1433842182159424
+Batch 77 style classification loss:3.297677993774414
+Batch 77 real/fake loss:3.9912633895874023
+Batch 78 style classification loss:3.331160306930542
+Batch 78 real/fake loss:3.213749647140503
+Batch 79 style classification loss:3.3411967754364014
+Batch 79 real/fake loss:1.8684990406036377
+Batch 80 style classification loss:3.333554983139038
+Batch 80 real/fake loss:3.7710602283477783
+Batch 81 style classification loss:3.3175268173217773
+Batch 81 real/fake loss:1.8533085584640503
+Batch 82 style classification loss:3.333728075027466
+Batch 82 real/fake loss:1.6342625617980957
+Batch 83 style classification loss:3.3333559036254883
+Batch 83 real/fake loss:1.9929333925247192
+Batch 84 style classification loss:3.3332087993621826
+Batch 84 real/fake loss:2.2854177951812744
+Batch 85 style classification loss:3.3161776065826416
+Batch 85 real/fake loss:3.2790820598602295
+Batch 86 style classification loss:3.34163761138916
+Batch 86 real/fake loss:1.901749849319458
+Batch 87 style classification loss:3.3249497413635254
+Batch 87 real/fake loss:2.6574156284332275
+Batch 88 style classification loss:3.3097856044769287
+Batch 88 real/fake loss:2.996502637863159
+Batch 89 style classification loss:3.296536445617676
+Batch 89 real/fake loss:4.219067096710205
+Batch 90 style classification loss:3.3253467082977295
+Batch 90 real/fake loss:1.501344084739685
+Batch 91 style classification loss:3.3489365577697754
+Batch 91 real/fake loss:2.0452516078948975
+Batch 92 style classification loss:3.3116660118103027
+Batch 92 real/fake loss:2.531205654144287
+Batch 93 style classification loss:3.3410110473632812
+Batch 93 real/fake loss:3.654560089111328
+Batch 94 style classification loss:3.333146810531616
+Batch 94 real/fake loss:1.7340447902679443
+Batch 95 style classification loss:3.317988634109497
+Batch 95 real/fake loss:3.347708225250244
+Batch 96 style classification loss:3.2896182537078857
+Batch 96 real/fake loss:2.90549898147583
+Batch 97 style classification loss:3.351337432861328
+Batch 97 real/fake loss:1.2617956399917603
+Batch 98 style classification loss:3.3311338424682617
+Batch 98 real/fake loss:3.3758935928344727
+Batch 99 style classification loss:3.341285467147827
+Batch 99 real/fake loss:2.7589831352233887
+Batch 100 style classification loss:3.340721845626831
+Batch 100 real/fake loss:3.971935749053955
+Batch 101 style classification loss:3.3307859897613525
+Batch 101 real/fake loss:2.8083996772766113
+Batch 102 style classification loss:3.3179595470428467
+Batch 102 real/fake loss:2.840961456298828
+Batch 103 style classification loss:3.3258049488067627
+Batch 103 real/fake loss:3.016141414642334
+Batch 104 style classification loss:3.2827765941619873
+Batch 104 real/fake loss:2.540820360183716
+Batch 105 style classification loss:3.3494696617126465
+Batch 105 real/fake loss:3.254767894744873
+Batch 106 style classification loss:3.325469732284546
+Batch 106 real/fake loss:3.425872802734375
+Batch 107 style classification loss:3.3156046867370605
+Batch 107 real/fake loss:2.714848041534424
+Batch 108 style classification loss:3.3259003162384033
+Batch 108 real/fake loss:2.4737932682037354
+Batch 109 style classification loss:3.348912000656128
+Batch 109 real/fake loss:2.6275131702423096
+Batch 110 style classification loss:3.3332905769348145
+Batch 110 real/fake loss:1.7746222019195557
+Batch 111 style classification loss:3.3024370670318604
+Batch 111 real/fake loss:1.1159526109695435
+Batch 112 style classification loss:3.3180129528045654
+Batch 112 real/fake loss:2.439544916152954
+Batch 113 style classification loss:3.3023006916046143
+Batch 113 real/fake loss:3.97436785697937
+Batch 114 style classification loss:3.3259973526000977
+Batch 114 real/fake loss:2.9116148948669434
+Batch 115 style classification loss:3.310116767883301
+Batch 115 real/fake loss:2.548656702041626
+Batch 116 style classification loss:3.2945902347564697
+Batch 116 real/fake loss:4.0962958335876465
+Batch 117 style classification loss:3.318528890609741
+Batch 117 real/fake loss:3.7861087322235107
+Batch 118 style classification loss:3.3100016117095947
+Batch 118 real/fake loss:4.806195259094238
+Batch 119 style classification loss:3.3314900398254395
+Batch 119 real/fake loss:3.078744888305664
+Batch 120 style classification loss:3.309889316558838
+Batch 120 real/fake loss:4.882786750793457
+Batch 121 style classification loss:3.3180649280548096
+Batch 121 real/fake loss:2.152526378631592
+Batch 122 style classification loss:3.3281733989715576
+Batch 122 real/fake loss:3.3666930198669434
+Batch 123 style classification loss:3.3346784114837646
+Batch 123 real/fake loss:4.1410112380981445
+Batch 124 style classification loss:3.3269593715667725
+Batch 124 real/fake loss:2.2768826484680176
+Batch 125 style classification loss:3.333798885345459
+Batch 125 real/fake loss:2.3916306495666504
+Batch 126 style classification loss:3.341294288635254
+Batch 126 real/fake loss:2.9818546772003174
+Batch 127 style classification loss:3.3112151622772217
+Batch 127 real/fake loss:3.4030678272247314
+Batch 128 style classification loss:3.3148996829986572
+Batch 128 real/fake loss:3.5575644969940186
+Batch 129 style classification loss:3.333116292953491
+Batch 129 real/fake loss:1.4281344413757324
+Batch 130 style classification loss:3.3117940425872803
+Batch 130 real/fake loss:2.6855087280273438
+Batch 131 style classification loss:3.313292980194092
+Batch 131 real/fake loss:2.8602547645568848
+Batch 132 style classification loss:3.3508903980255127
+Batch 132 real/fake loss:1.3769410848617554
+Batch 133 style classification loss:3.31636905670166
+Batch 133 real/fake loss:2.2600650787353516
+Batch 134 style classification loss:3.3342297077178955
+Batch 134 real/fake loss:3.1787261962890625
+Batch 135 style classification loss:3.318791389465332
+Batch 135 real/fake loss:2.4472832679748535
+Batch 136 style classification loss:3.3071157932281494
+Batch 136 real/fake loss:4.065442085266113
+Batch 137 style classification loss:3.301741361618042
+Batch 137 real/fake loss:2.9146008491516113
+Batch 138 style classification loss:3.332157611846924
+Batch 138 real/fake loss:3.080085277557373
+Batch 139 style classification loss:3.305556058883667
+Batch 139 real/fake loss:2.547421932220459
+Batch 140 style classification loss:3.3032288551330566
+Batch 140 real/fake loss:3.4676389694213867
+Batch 141 style classification loss:3.326368808746338
+Batch 141 real/fake loss:3.479099750518799
+Batch 142 style classification loss:3.331291675567627
+Batch 142 real/fake loss:1.812104344367981
+Batch 143 style classification loss:3.3309621810913086
+Batch 143 real/fake loss:2.975254774093628
+Batch 144 style classification loss:3.3348400592803955
+Batch 144 real/fake loss:1.9755221605300903
+Batch 145 style classification loss:3.3413219451904297
+Batch 145 real/fake loss:2.925015687942505
+Batch 146 style classification loss:3.333510398864746
+Batch 146 real/fake loss:3.7066404819488525
+Batch 147 style classification loss:3.310321807861328
+Batch 147 real/fake loss:2.133729934692383
+Batch 148 style classification loss:3.3333730697631836
+Batch 148 real/fake loss:2.8898987770080566
+Batch 149 style classification loss:3.324882745742798
+Batch 149 real/fake loss:2.326056957244873
+Batch 150 style classification loss:3.2906653881073
+Batch 150 real/fake loss:1.4091856479644775
+Batch 151 style classification loss:3.3335506916046143
+Batch 151 real/fake loss:3.7629427909851074
+Batch 152 style classification loss:3.349412441253662
+Batch 152 real/fake loss:2.305515766143799
+Batch 153 style classification loss:3.3398830890655518
+Batch 153 real/fake loss:3.3213305473327637
+Batch 154 style classification loss:3.2999701499938965
+Batch 154 real/fake loss:2.98433256149292
+Batch 155 style classification loss:3.3336079120635986
+Batch 155 real/fake loss:1.5956408977508545
+Batch 156 style classification loss:3.306678295135498
+Batch 156 real/fake loss:3.3616151809692383
+Batch 157 style classification loss:3.3209638595581055
+Batch 157 real/fake loss:3.067594051361084
+Batch 158 style classification loss:3.325835943222046
+Batch 158 real/fake loss:2.6693668365478516
+Batch 159 style classification loss:3.34675669670105
+Batch 159 real/fake loss:2.8694918155670166
+Batch 160 style classification loss:3.3413941860198975
+Batch 160 real/fake loss:2.687239170074463
+Batch 161 style classification loss:3.332599639892578
+Batch 161 real/fake loss:2.3753910064697266
+Batch 162 style classification loss:3.315695285797119
+Batch 162 real/fake loss:1.4029157161712646
+Batch 163 style classification loss:3.310776710510254
+Batch 163 real/fake loss:3.3660106658935547
+Batch 164 style classification loss:3.2991576194763184
+Batch 164 real/fake loss:2.988609790802002
+Batch 165 style classification loss:3.325831413269043
+Batch 165 real/fake loss:2.6066575050354004
+Batch 166 style classification loss:3.3251166343688965
+Batch 166 real/fake loss:2.3970251083374023
+Batch 167 style classification loss:3.326185464859009
+Batch 167 real/fake loss:2.807206630706787
+Batch 168 style classification loss:3.354954719543457
+Batch 168 real/fake loss:2.0195910930633545
+Batch 169 style classification loss:3.321716547012329
+Batch 169 real/fake loss:1.2482211589813232
+Batch 170 style classification loss:3.3403642177581787
+Batch 170 real/fake loss:3.0747365951538086
+Batch 171 style classification loss:3.31514048576355
+Batch 171 real/fake loss:2.075164318084717
+Batch 172 style classification loss:3.3101038932800293
+Batch 172 real/fake loss:2.8191490173339844
+Batch 173 style classification loss:3.302208423614502
+Batch 173 real/fake loss:2.088841438293457
+Batch 174 style classification loss:3.3336188793182373
+Batch 174 real/fake loss:3.1267457008361816
+Batch 175 style classification loss:3.3182194232940674
+Batch 175 real/fake loss:0.9057577848434448
+Batch 176 style classification loss:3.3078391551971436
+Batch 176 real/fake loss:2.756026029586792
+Batch 177 style classification loss:3.3409626483917236
+Batch 177 real/fake loss:2.1894447803497314
+Batch 178 style classification loss:3.3177409172058105
+Batch 178 real/fake loss:2.9810335636138916
+Batch 179 style classification loss:3.3334860801696777
+Batch 179 real/fake loss:4.312573432922363
+Batch 180 style classification loss:3.3257222175598145
+Batch 180 real/fake loss:2.1838760375976562
+Batch 181 style classification loss:3.3253841400146484
+Batch 181 real/fake loss:1.9913818836212158
+Batch 182 style classification loss:3.3258869647979736
+Batch 182 real/fake loss:5.094118118286133
+Batch 183 style classification loss:3.333587169647217
+Batch 183 real/fake loss:1.740138053894043
+Batch 184 style classification loss:3.3178515434265137
+Batch 184 real/fake loss:2.7902941703796387
+Batch 185 style classification loss:3.317265272140503
+Batch 185 real/fake loss:2.659626007080078
+Batch 186 style classification loss:3.302631139755249
+Batch 186 real/fake loss:2.6536898612976074
+Batch 187 style classification loss:3.349177122116089
+Batch 187 real/fake loss:2.9364023208618164
+Batch 188 style classification loss:3.2906100749969482
+Batch 188 real/fake loss:2.247359275817871
+Batch 189 style classification loss:3.3410017490386963
+Batch 189 real/fake loss:1.843334436416626
+Batch 190 style classification loss:3.3320374488830566
+Batch 190 real/fake loss:2.8116729259490967
+Batch 191 style classification loss:3.324108362197876
+Batch 191 real/fake loss:2.0825295448303223
+Batch 192 style classification loss:3.3411927223205566
+Batch 192 real/fake loss:3.1568262577056885
+Batch 193 style classification loss:3.327285051345825
+Batch 193 real/fake loss:4.275622367858887
+Batch 194 style classification loss:3.3388125896453857
+Batch 194 real/fake loss:1.9231362342834473
+Batch 195 style classification loss:3.3325307369232178
+Batch 195 real/fake loss:1.9974132776260376
+Batch 196 style classification loss:3.3349251747131348
+Batch 196 real/fake loss:4.637503623962402
+Batch 197 style classification loss:3.3236005306243896
+Batch 197 real/fake loss:3.718618154525757
+Batch 198 style classification loss:3.325536012649536
+Batch 198 real/fake loss:2.3142292499542236
+Batch 199 style classification loss:3.3321027755737305
+Batch 199 real/fake loss:1.7499350309371948
+Batch 200 style classification loss:3.3415534496307373
+Batch 200 real/fake loss:3.0600199699401855
+Batch 201 style classification loss:3.3257319927215576
+Batch 201 real/fake loss:3.4917197227478027
+Batch 202 style classification loss:3.2983696460723877
+Batch 202 real/fake loss:1.322001576423645
+Batch 203 style classification loss:3.3490231037139893
+Batch 203 real/fake loss:1.7289776802062988
+Batch 204 style classification loss:3.325408458709717
+Batch 204 real/fake loss:4.125845432281494
+Batch 205 style classification loss:3.2955243587493896
+Batch 205 real/fake loss:2.6025009155273438
+Batch 206 style classification loss:3.344228982925415
+Batch 206 real/fake loss:1.3735570907592773
+Batch 207 style classification loss:3.3110251426696777
+Batch 207 real/fake loss:2.40170955657959
+Batch 208 style classification loss:3.313764810562134
+Batch 208 real/fake loss:3.0530519485473633
+Batch 209 style classification loss:3.3410229682922363
+Batch 209 real/fake loss:1.887223243713379
+Batch 210 style classification loss:3.349252223968506
+Batch 210 real/fake loss:4.218327045440674
+Batch 211 style classification loss:3.3176980018615723
+Batch 211 real/fake loss:2.5184783935546875
+Batch 212 style classification loss:3.333238124847412
+Batch 212 real/fake loss:2.1316652297973633
+Batch 213 style classification loss:3.3099589347839355
+Batch 213 real/fake loss:0.5520122051239014
+Batch 214 style classification loss:3.3332951068878174
+Batch 214 real/fake loss:1.6273928880691528
+Batch 215 style classification loss:3.3097341060638428
+Batch 215 real/fake loss:3.7321887016296387
+Batch 216 style classification loss:3.338101625442505
+Batch 216 real/fake loss:2.479865789413452
+Batch 217 style classification loss:3.318056106567383
+Batch 217 real/fake loss:1.8109688758850098
+Batch 218 style classification loss:3.2995805740356445
+Batch 218 real/fake loss:2.563570499420166
+Batch 219 style classification loss:3.3255441188812256
+Batch 219 real/fake loss:4.072859764099121
+Batch 220 style classification loss:3.318094491958618
+Batch 220 real/fake loss:2.0533037185668945
+Batch 221 style classification loss:3.3172335624694824
+Batch 221 real/fake loss:3.2398393154144287
+Batch 222 style classification loss:3.356659173965454
+Batch 222 real/fake loss:3.356832981109619
+Batch 223 style classification loss:3.3317508697509766
+Batch 223 real/fake loss:1.0094488859176636
+Batch 224 style classification loss:3.341222047805786
+Batch 224 real/fake loss:3.3623063564300537
+Batch 225 style classification loss:3.3569700717926025
+Batch 225 real/fake loss:2.5043413639068604
+Batch 226 style classification loss:3.326246976852417
+Batch 226 real/fake loss:3.6540331840515137
+Batch 227 style classification loss:3.294339179992676
+Batch 227 real/fake loss:1.5438201427459717
+Batch 228 style classification loss:3.3170740604400635
+Batch 228 real/fake loss:3.3402211666107178
+Batch 229 style classification loss:3.3330178260803223
+Batch 229 real/fake loss:3.758932113647461
+Batch 230 style classification loss:3.3176822662353516
+Batch 230 real/fake loss:3.310046911239624
+Batch 231 style classification loss:3.3393852710723877
+Batch 231 real/fake loss:2.4200539588928223
+Batch 232 style classification loss:3.320396900177002
+Batch 232 real/fake loss:2.4988765716552734
+Batch 233 style classification loss:3.317537307739258
+Batch 233 real/fake loss:3.2629714012145996
+Batch 234 style classification loss:3.325706958770752
+Batch 234 real/fake loss:3.2682032585144043
+Batch 235 style classification loss:3.349231481552124
+Batch 235 real/fake loss:1.6614983081817627
+Batch 236 style classification loss:3.2869513034820557
+Batch 236 real/fake loss:3.4956703186035156
+Batch 237 style classification loss:3.3490068912506104
+Batch 237 real/fake loss:3.706342935562134
+Batch 238 style classification loss:3.333404779434204
+Batch 238 real/fake loss:3.492126941680908
+Batch 239 style classification loss:3.313030481338501
+Batch 239 real/fake loss:2.646395683288574
+Batch 240 style classification loss:3.345869779586792
+Batch 240 real/fake loss:3.365565538406372
+Batch 241 style classification loss:3.333111047744751
+Batch 241 real/fake loss:3.2042641639709473
+Batch 242 style classification loss:3.3254573345184326
+Batch 242 real/fake loss:3.1753878593444824
+Batch 243 style classification loss:3.3252389430999756
+Batch 243 real/fake loss:2.9325499534606934
+Batch 244 style classification loss:3.3255341053009033
+Batch 244 real/fake loss:1.8829238414764404
+Batch 245 style classification loss:3.3402137756347656
+Batch 245 real/fake loss:3.8330135345458984
+Batch 246 style classification loss:3.3253965377807617
+Batch 246 real/fake loss:0.9729239344596863
+Batch 247 style classification loss:3.3488004207611084
+Batch 247 real/fake loss:2.7094850540161133
+Batch 248 style classification loss:3.3490264415740967
+Batch 248 real/fake loss:3.1470367908477783
+Batch 249 style classification loss:3.339570999145508
+Batch 249 real/fake loss:3.0307300090789795
+Batch 250 style classification loss:3.333695650100708
+Batch 250 real/fake loss:2.7210536003112793
+Batch 251 style classification loss:3.3015170097351074
+Batch 251 real/fake loss:3.466409206390381
+Batch 252 style classification loss:3.3492674827575684
+Batch 252 real/fake loss:2.930863857269287
+Batch 253 style classification loss:3.325824737548828
+Batch 253 real/fake loss:2.2977101802825928
+Batch 254 style classification loss:3.3259387016296387
+Batch 254 real/fake loss:3.449803113937378
+Batch 255 style classification loss:3.3331902027130127
+Batch 255 real/fake loss:2.5106453895568848
+Batch 256 style classification loss:3.3259429931640625
+Batch 256 real/fake loss:2.634101152420044
+Batch 257 style classification loss:3.302654504776001
+Batch 257 real/fake loss:3.3031744956970215
+Batch 258 style classification loss:3.3454461097717285
+Batch 258 real/fake loss:3.3725008964538574
+Batch 259 style classification loss:3.314704656600952
+Batch 259 real/fake loss:1.4127464294433594
+Batch 260 style classification loss:3.317150592803955
+Batch 260 real/fake loss:2.3746914863586426
+Batch 261 style classification loss:3.302528142929077
+Batch 261 real/fake loss:3.0947978496551514
+Batch 262 style classification loss:3.356308698654175
+Batch 262 real/fake loss:1.814724326133728
+Batch 263 style classification loss:3.340416193008423
+Batch 263 real/fake loss:2.330313205718994
+Batch 264 style classification loss:3.312462329864502
+Batch 264 real/fake loss:0.7450933456420898
+Batch 265 style classification loss:3.309626817703247
+Batch 265 real/fake loss:4.014739036560059
+Batch 266 style classification loss:3.334859609603882
+Batch 266 real/fake loss:3.191206455230713
+Batch 267 style classification loss:3.325709104537964
+Batch 267 real/fake loss:1.43386709690094
+Batch 268 style classification loss:3.304753303527832
+Batch 268 real/fake loss:2.973339080810547
+Batch 269 style classification loss:3.3178036212921143
+Batch 269 real/fake loss:3.1884686946868896
+Batch 270 style classification loss:3.310041666030884
+Batch 270 real/fake loss:3.5202064514160156
+Batch 271 style classification loss:3.3413405418395996
+Batch 271 real/fake loss:4.035000801086426
+Batch 272 style classification loss:3.3258888721466064
+Batch 272 real/fake loss:2.0337748527526855
+Batch 273 style classification loss:3.3114724159240723
+Batch 273 real/fake loss:3.218745231628418
+Batch 274 style classification loss:3.3069491386413574
+Batch 274 real/fake loss:3.784759044647217
+Batch 275 style classification loss:3.3335039615631104
+Batch 275 real/fake loss:2.664820432662964
+Batch 276 style classification loss:3.319129705429077
+Batch 276 real/fake loss:1.5737152099609375
+Batch 277 style classification loss:3.3080151081085205
+Batch 277 real/fake loss:2.540142774581909
+Batch 278 style classification loss:3.3186371326446533
+Batch 278 real/fake loss:1.8653470277786255
+Batch 279 style classification loss:3.335780620574951
+Batch 279 real/fake loss:3.2809929847717285
+Batch 280 style classification loss:3.3107495307922363
+Batch 280 real/fake loss:2.686739206314087
+Batch 281 style classification loss:3.3032140731811523
+Batch 281 real/fake loss:3.235555648803711
+Batch 282 style classification loss:3.3177356719970703
+Batch 282 real/fake loss:1.4282783269882202
+Batch 283 style classification loss:3.3258042335510254
+Batch 283 real/fake loss:1.6971089839935303
+Batch 284 style classification loss:3.3415188789367676
+Batch 284 real/fake loss:2.8456437587738037
+Batch 285 style classification loss:3.3173463344573975
+Batch 285 real/fake loss:2.4958481788635254
+Batch 286 style classification loss:3.341386318206787
+Batch 286 real/fake loss:3.662243366241455
+Batch 287 style classification loss:3.334044933319092
+Batch 287 real/fake loss:2.631351947784424
+Batch 288 style classification loss:3.3183844089508057
+Batch 288 real/fake loss:3.526121139526367
+Batch 289 style classification loss:3.332775592803955
+Batch 289 real/fake loss:4.079260349273682
+Batch 290 style classification loss:3.303946018218994
+Batch 290 real/fake loss:4.072664737701416
+Batch 291 style classification loss:3.3412327766418457
+Batch 291 real/fake loss:3.2468574047088623
+Batch 292 style classification loss:3.3173134326934814
+Batch 292 real/fake loss:2.926015615463257
+Batch 293 style classification loss:3.331787109375
+Batch 293 real/fake loss:4.422756671905518
+Batch 294 style classification loss:3.3267409801483154
+Batch 294 real/fake loss:2.0771775245666504
+Batch 295 style classification loss:3.3020362854003906
+Batch 295 real/fake loss:3.3904857635498047
+Batch 296 style classification loss:3.31144118309021
+Batch 296 real/fake loss:2.714874505996704
+Batch 297 style classification loss:3.312553882598877
+Batch 297 real/fake loss:4.324542045593262
+Batch 298 style classification loss:3.333498954772949
+Batch 298 real/fake loss:2.4969191551208496
+Batch 299 style classification loss:3.317960262298584
+Batch 299 real/fake loss:2.589238166809082
+Batch 300 style classification loss:3.325989007949829
+Batch 300 real/fake loss:3.6804614067077637
+Batch 301 style classification loss:3.317906141281128
+Batch 301 real/fake loss:2.5162837505340576
+Batch 302 style classification loss:3.3233940601348877
+Batch 302 real/fake loss:2.3389766216278076
+Batch 303 style classification loss:3.313459873199463
+Batch 303 real/fake loss:3.2220458984375
+Batch 304 style classification loss:3.293222427368164
+Batch 304 real/fake loss:4.407214164733887
+Batch 305 style classification loss:3.3026092052459717
+Batch 305 real/fake loss:3.4903736114501953
+Batch 306 style classification loss:3.3177149295806885
+Batch 306 real/fake loss:2.9249305725097656
+Batch 307 style classification loss:3.3411760330200195
+Batch 307 real/fake loss:4.380080223083496
+Batch 308 style classification loss:3.33376145362854
+Batch 308 real/fake loss:1.907746434211731
+Batch 309 style classification loss:3.318875551223755
+Batch 309 real/fake loss:3.5139169692993164
+Batch 310 style classification loss:3.3102622032165527
+Batch 310 real/fake loss:2.88909912109375
+Batch 311 style classification loss:3.313217878341675
+Batch 311 real/fake loss:2.8072681427001953
+Batch 312 style classification loss:3.333451271057129
+Batch 312 real/fake loss:3.5356645584106445
+Batch 313 style classification loss:3.3024396896362305
+Batch 313 real/fake loss:3.6206436157226562
+Batch 314 style classification loss:3.349252939224243
+Batch 314 real/fake loss:3.9874470233917236
+Batch 315 style classification loss:3.3179123401641846
+Batch 315 real/fake loss:2.0721092224121094
+Batch 316 style classification loss:3.3104631900787354
+Batch 316 real/fake loss:4.11290979385376
+Batch 317 style classification loss:3.3018884658813477
+Batch 317 real/fake loss:2.7988483905792236
+Batch 318 style classification loss:3.3264362812042236
+Batch 318 real/fake loss:1.9782859086990356
+Batch 319 style classification loss:3.301107168197632
+Batch 319 real/fake loss:1.82220458984375
+Batch 320 style classification loss:3.3336267471313477
+Batch 320 real/fake loss:3.438199281692505
+Batch 321 style classification loss:3.3025853633880615
+Batch 321 real/fake loss:2.3054699897766113
+Batch 322 style classification loss:3.3415706157684326
+Batch 322 real/fake loss:1.4321823120117188
+Batch 323 style classification loss:3.310378074645996
+Batch 323 real/fake loss:2.0447332859039307
+Batch 324 style classification loss:3.318176507949829
+Batch 324 real/fake loss:2.557399272918701
+Batch 325 style classification loss:3.3326852321624756
+Batch 325 real/fake loss:2.935577869415283
+Batch 326 style classification loss:3.3306124210357666
+Batch 326 real/fake loss:1.797400951385498
+Batch 327 style classification loss:3.3099565505981445
+Batch 327 real/fake loss:1.0913068056106567
+Batch 328 style classification loss:3.333439588546753
+Batch 328 real/fake loss:5.415131568908691
+Batch 329 style classification loss:3.3111190795898438
+Batch 329 real/fake loss:2.754455089569092
+Batch 330 style classification loss:3.3333916664123535
+Batch 330 real/fake loss:2.0174906253814697
+Batch 331 style classification loss:3.3092610836029053
+Batch 331 real/fake loss:2.956017255783081
+Batch 332 style classification loss:3.3413307666778564
+Batch 332 real/fake loss:1.8837255239486694
+Batch 333 style classification loss:3.341535806655884
+Batch 333 real/fake loss:3.711249828338623
+Batch 334 style classification loss:3.309739828109741
+Batch 334 real/fake loss:1.8426010608673096
+Batch 335 style classification loss:3.333326816558838
+Batch 335 real/fake loss:2.8801724910736084
+Batch 336 style classification loss:3.309936761856079
+Batch 336 real/fake loss:2.593003988265991
+Batch 337 style classification loss:3.3193211555480957
+Batch 337 real/fake loss:3.914146900177002
+Batch 338 style classification loss:3.3034703731536865
+Batch 338 real/fake loss:3.813753843307495
+Batch 339 style classification loss:3.325371742248535
+Batch 339 real/fake loss:3.8328943252563477
+Batch 340 style classification loss:3.3121747970581055
+Batch 340 real/fake loss:3.3684563636779785
+Batch 341 style classification loss:3.346667766571045
+Batch 341 real/fake loss:3.2210850715637207
+Batch 342 style classification loss:3.317432165145874
+Batch 342 real/fake loss:1.657804250717163
+Batch 343 style classification loss:3.2994003295898438
+Batch 343 real/fake loss:3.578047275543213
+Batch 344 style classification loss:3.3255867958068848
+Batch 344 real/fake loss:2.976728677749634
+Batch 345 style classification loss:3.3190314769744873
+Batch 345 real/fake loss:2.0819168090820312
+Batch 346 style classification loss:3.3336479663848877
+Batch 346 real/fake loss:2.7940001487731934
+Batch 347 style classification loss:3.316361427307129
+Batch 347 real/fake loss:3.6455535888671875
+Batch 348 style classification loss:3.3182265758514404
+Batch 348 real/fake loss:3.4951131343841553
+Batch 349 style classification loss:3.3175599575042725
+Batch 349 real/fake loss:3.341731548309326
+Batch 350 style classification loss:3.3021349906921387
+Batch 350 real/fake loss:2.7906033992767334
+Batch 351 style classification loss:3.3247241973876953
+Batch 351 real/fake loss:4.049229621887207
+Batch 352 style classification loss:3.3254685401916504
+Batch 352 real/fake loss:3.0049705505371094
+Batch 353 style classification loss:3.315706729888916
+Batch 353 real/fake loss:2.791891574859619
+Batch 354 style classification loss:3.3488693237304688
+Batch 354 real/fake loss:2.6962695121765137
+Batch 355 style classification loss:3.3177967071533203
+Batch 355 real/fake loss:3.1404385566711426
+Batch 356 style classification loss:3.3486862182617188
+Batch 356 real/fake loss:1.7500468492507935
+Batch 357 style classification loss:3.3167600631713867
+Batch 357 real/fake loss:2.13462233543396
+Batch 358 style classification loss:3.3257100582122803
+Batch 358 real/fake loss:1.8178284168243408
+Batch 359 style classification loss:3.318077564239502
+Batch 359 real/fake loss:2.520934581756592
+Batch 360 style classification loss:3.30717396736145
+Batch 360 real/fake loss:2.2283883094787598
+Batch 361 style classification loss:3.325784921646118
+Batch 361 real/fake loss:3.417235851287842
+Batch 362 style classification loss:3.289344310760498
+Batch 362 real/fake loss:1.0454790592193604
+Batch 363 style classification loss:3.32521390914917
+Batch 363 real/fake loss:1.1438910961151123
+Batch 364 style classification loss:3.332850456237793
+Batch 364 real/fake loss:1.6883537769317627
+Batch 365 style classification loss:3.298351764678955
+Batch 365 real/fake loss:2.009481191635132
+Batch 366 style classification loss:3.349125862121582
+Batch 366 real/fake loss:2.2661209106445312
+Batch 367 style classification loss:3.304102897644043
+Batch 367 real/fake loss:3.874192237854004
+Batch 368 style classification loss:3.309752941131592
+Batch 368 real/fake loss:1.4604501724243164
+Batch 369 style classification loss:3.3174822330474854
+Batch 369 real/fake loss:2.4410898685455322
+Batch 370 style classification loss:3.325775146484375
+Batch 370 real/fake loss:3.102181911468506
+Batch 371 style classification loss:3.333613395690918
+Batch 371 real/fake loss:4.680873870849609
+Batch 372 style classification loss:3.341200828552246
+Batch 372 real/fake loss:2.3046693801879883
+Batch 373 style classification loss:3.3258984088897705
+Batch 373 real/fake loss:3.2867045402526855
+Batch 374 style classification loss:3.3170018196105957
+Batch 374 real/fake loss:1.3181227445602417
+Batch 375 style classification loss:3.3104171752929688
+Batch 375 real/fake loss:3.238405704498291
+Batch 376 style classification loss:3.3099331855773926
+Batch 376 real/fake loss:2.066208839416504
+Batch 377 style classification loss:3.3242859840393066
+Batch 377 real/fake loss:3.86523699760437
+Batch 378 style classification loss:3.3112597465515137
+Batch 378 real/fake loss:3.726909637451172
+Batch 379 style classification loss:3.3398237228393555
+Batch 379 real/fake loss:2.635032892227173
+Batch 380 style classification loss:3.333141565322876
+Batch 380 real/fake loss:3.3242316246032715
+Batch 381 style classification loss:3.333174228668213
+Batch 381 real/fake loss:3.5472147464752197
+Batch 382 style classification loss:3.3303418159484863
+Batch 382 real/fake loss:1.8953158855438232
+Batch 383 style classification loss:3.3258984088897705
+Batch 383 real/fake loss:2.5968875885009766
+Batch 384 style classification loss:3.3270914554595947
+Batch 384 real/fake loss:0.6916180849075317
+Batch 385 style classification loss:3.339759349822998
+Batch 385 real/fake loss:3.973252296447754
+Batch 386 style classification loss:3.309894561767578
+Batch 386 real/fake loss:2.4755167961120605
+Batch 387 style classification loss:3.3414864540100098
+Batch 387 real/fake loss:1.9502530097961426
+Batch 388 style classification loss:3.318519115447998
+Batch 388 real/fake loss:1.9023786783218384
+Batch 389 style classification loss:3.316357135772705
+Batch 389 real/fake loss:4.689637184143066
+Batch 390 style classification loss:3.3443551063537598
+Batch 390 real/fake loss:4.364944934844971

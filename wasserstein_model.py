@@ -27,13 +27,13 @@ import torch.utils.data
 import torchvision.datasets as dset
 import torchvision.transforms as transforms
 import torchvision.utils as vutils
-from torch.autograd import Variable
+from torch.autograd import Variable, grad
 import time
 
 
 # GAN
 # can be DCGAN, CAN, WGAN etc
-class GAN:
+class WGAN:
 
     def __init__(self, options):
      
@@ -62,7 +62,7 @@ class GAN:
         self.disc_path = options.disc_path
         self.out_folder = options.out_folder
         self.manual_seed = options.manual_seed
-        self.lsgan = options.lsgan
+        self.gradient_penalty = options.gradient_penalty
        
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         self.train_history =  {}
@@ -81,6 +81,27 @@ class GAN:
             m.weight.data.normal_(1.0, 0.02)
             m.bias.data.fill_(0)
 
+    # via https://github.com/caogang/wgan-gp/blob/master/gan_cifar10.py
+    def calc_gradient_penalty(self, batch_size, real_images, fake_images):
+        # print "real_data: ", real_data.size(), fake_data.size()
+        alpha = torch.rand(batch_size, 1)
+        alpha = alpha.expand(batch_size, real_images.nelement()//batch_size).contiguous().view(batch_size, 3, 64, 64).to(self.device)
+        
+
+        interpolates = alpha * real_images + ((1 - alpha) * fake_images)
+        interpolates = interpolates.to(self.device)
+        interpolates.requires_grad_(True)
+        if self.type == 'can':
+            disc_interpolates, _ = self.discriminator(interpolates)
+        else:
+            disc_interpolates = self.discriminator(interpolates)
+        gradients = grad(outputs=disc_interpolates, inputs=interpolates,
+                                grad_outputs=torch.ones(disc_interpolates.size()).to(self.device),
+                                create_graph=True, retain_graph=True, only_inputs=True)[0]
+        gradients = gradients.view(gradients.size(0), -1)
+
+        gradient_penalty = ((gradients.norm(2, dim=1) - 1) ** 2).mean() * 10 #lambda
+        return gradient_penalty
  
     def train(self):
         print("GPU/CPU:",torch.cuda.get_device_name(0))
@@ -101,38 +122,51 @@ class GAN:
         else:
             # Get dataset
             data = get_dataset(self.dataroot)
-       
-        # # Set the type of GAN
         dataloader = torch.utils.data.DataLoader(data, batch_size=self.batch_size,
                                          shuffle=True, num_workers=int(self.workers))
 
         # # Set the type of GAN
         if self.type == "dcgan": 
-            self.generator = DcganGenerator(self.z_noise, self.channels, self.num_gen_filters).to(self.device)
-            self.discriminator = DcganDiscriminator(self.channels, self.num_disc_filters).to(self.device)
-            criterion = nn.BCELoss()
+            if self.gradient_penalty:
+                self.generator = DcganGenerator(self.z_noise, self.channels, self.num_gen_filters).to(self.device)
+                self.discriminator = WgangpDiscriminator(self.channels, self.num_disc_filters).to(self.device)
+                criterion = nn.BCELoss()
+            else:
+                self.generator = DcganGenerator(self.z_noise, self.channels, self.num_gen_filters).to(self.device)
+                self.discriminator = WganDiscriminator(self.channels, self.num_disc_filters).to(self.device)
+                criterion = nn.BCELoss()
 
         if self.type == "can":
-            self.generator = Can64Generator(self.z_noise, self.channels, self.num_gen_filters).to(self.device)
-            self.discriminator = Can64Discriminator(self.channels,self.y_dim, self.num_disc_filters).to(self.device)
-            style_criterion = nn.CrossEntropyLoss()
+            if self.gradient_penalty:
+                self.generator = Can64Generator(self.z_noise, self.channels, self.num_gen_filters).to(self.device)
+                self.discriminator = WCangp64Discriminator(self.channels,self.y_dim, self.num_disc_filters).to(self.device)
+                style_criterion = nn.CrossEntropyLoss()
+
+
+            else:
+                self.generator = Can64Generator(self.z_noise, self.channels, self.num_gen_filters).to(self.device)
+                self.discriminator =WCangp64Discriminator(self.channels,self.y_dim, self.num_disc_filters).to(self.device)
+                style_criterion = nn.CrossEntropyLoss()
         
         # setup optimizers
         # todo : options for SGD, RMSProp
-        self.disc_optimizer = optim.Adam(self.discriminator.parameters(), lr=self.lr)# betas=(self.beta1, 0.999))
-        # recommended in GANhacks
-        self.gen_optimizer = optim.Adam(self.generator.parameters(), lr=self.lr)#, betas=(self.beta1, 0.999))
-        
-        if self.lsgan:
-            criterion = nn.MSELoss()
+        if self.gradient_penalty:
+            self.disc_optimizer = optim.Adam(self.discriminator.parameters(), lr=self.lr, betas=(self.beta1, 0.9))
+            self.gen_optimizer = optim.Adam(self.generator.parameters(), lr=self.lr, betas=(self.beta1, 0.9))
         else:
-            criterion = nn.BCELoss()
+            self.disc_optimizer = optim.RMSprop(self.discriminator.parameters(), lr=self.lr)
+            self.gen_optimizer = optim.RMSprop(self.generator.parameters(), lr=self.lr)
+            
+
+        criterion = nn.BCELoss()
         self.discriminator.apply(self.weights_init)
         self.generator.apply(self.weights_init) 
 
         if self.disc_path != '':
             self.discriminator.load_state_dict(torch.load(self.disc_path))
 
+        print(str(self.discriminator))
+        print(str(self.generator))
         model_file.write("Discriminator:\n")   
         model_file.write(str(self.discriminator))
         model_file.write("\nGenerator:\n")   
@@ -140,114 +174,163 @@ class GAN:
 
         real_label = 1
         fake_label = 0
-       
+        lambda_ = 10
+     
+        
+
+   
         # Normalized noise
         fixed_noise = torch.randn(self.batch_size, self.z_noise, 1, 1,device=self.device)
-        labels = torch.full((self.batch_size,), real_label, device=self.device)
+        label = torch.full((self.batch_size,), real_label, device=self.device)
 
         # Generator class/style labels
         gen_style_labels = torch.LongTensor(self.batch_size)
-        gen_style_labels = gen_style_labels.fill_(1)
- 
-
+        gen_style_labels = gen_style_labels.fill_(1).to(self.device)
+        gen_iterations = 0
+      
         # Actual training!
         for epoch in range(self.num_epochs):
             epoch_start_time = time.time()
             training_notes_file.write("\nEpoch"+str(epoch)+":\n")
             data_iterator = iter(dataloader)
-
             i = 0
+            wdcgan_flag = False
             # Heavily inspired by https://github.com/pytorch/examples/blob/master/dcgan/main.py
             while i < len(dataloader):
-            
+                j = 0
                 disc_loss_epoch = []
                 gen_loss_epoch = []
-                
                 if self.type == "can":
                     disc_class_loss_epoch = []
                     gen_class_loss_epoch = []
+                
+                if self.gradient_penalty == False:
+                    if gen_iterations < 25 or (gen_iterations % 500 == 0):
+                        disc_iters = 100
+                else:
+                    disc_iters = self.disc_iterations
 
+                while j < disc_iters and (i < len(dataloader)):
+                    
+                    if self.gradient_penalty == False:
+                        # Train Discriminator
+                        for param in self.discriminator.parameters():
+                            param.data.clamp_(self.lower_clamp,self.upper_clamp)
+                    
 
-                curr_start = time.time()
-                # WGAN
+                    for param in self.discriminator.parameters():
+                        param.requires_grad_(True)
+                    
+                    j+=1
+                    i+=1
+                    data = data_iterator.next()
+                    self.discriminator.zero_grad()
+                    real_images, image_labels = data
+                    real_images = real_images.to(self.device) 
+                    batch_size = real_images.size(0)
+                    real_image_labels = torch.LongTensor(batch_size).to(self.device)
+                    real_image_labels.copy_(image_labels)
+    
+                    labels = torch.full((batch_size,),real_label,device=self.device)
+
+                    if self.type == 'can':
+                        predicted_output_real, predicted_styles_real = self.discriminator(real_images.detach())
+                        predicted_styles_real = predicted_styles_real.to(self.device)
+                        disc_class_loss = style_criterion(predicted_styles_real,real_image_labels)
+                        disc_class_loss.backward(retain_graph=True)
+                     
+                    else:
+                        predicted_output_real = self.discriminator(real_images.detach())
+                    
+                    # disc_loss_real = criterion(predicted_output_real,labels)
+                    # disc_loss_real.backward(retain_graph=True)
+
+                    disc_loss_real = -torch.mean(predicted_output_real)
+                    
+
+                    # fake
+
+                    noise = torch.randn(batch_size,self.z_noise,1,1,device=self.device)
+                    with torch.no_grad():
+                        noise_g = noise.detach()
+                    fake_images = self.generator(noise_g)
+                    labels.fill_(fake_label)
+
+                    if self.type == 'can':
+                        predicted_output_fake, predicted_styles_fake = self.discriminator(fake_images)
+
+                    else:
+                        predicted_output_fake = self.discriminator(fake_images)
+
             
-                # Train Discriminator
-                self.discriminator.zero_grad()
 
-                # real
-                data = data_iterator.next()
-                real_images, image_labels = data
-                real_images = real_images.to(self.device) 
-                batch_size = real_images.size(0)
+                    disc_gen_z_1 = predicted_output_fake.mean().item()
 
-                real_image_labels = torch.LongTensor(batch_size).to(self.device)
-                real_image_labels.copy_(image_labels)
-                labels = torch.full((batch_size,), real_label, device=self.device)
+                    disc_loss_fake = torch.mean(predicted_output_fake)
 
-                # label smoothing
-                # rand_labels = np.random.uniform(low=0.7, high=1.2, size=(batch_size,))
-                # r_labels = torch.from_numpy(rand_labels)
-                # labels.copy_(r_labels)
-                #print(labels)
-                if self.type == 'can':
-                    predicted_output_real, predicted_styles_real = self.discriminator(real_images.detach())
-                    disc_class_loss = style_criterion(predicted_styles_real,real_image_labels)
-                    disc_class_loss.backward(retain_graph=True)
-                else:
-                    predicted_output_real = self.discriminator(real_images.detach())
+                    # is negative
+                    #disc_loss =  disc_loss_real - disc_loss_fake
+
+                    #via https://github.com/znxlwm/pytorch-generative-model-collections/blob/master/WGAN_GP.py
+                    if self.gradient_penalty:
+                        # gradient penalty
+                        alpha = torch.rand((real_images.size()[0], 1, 1, 1)).to(self.device) 
+                        x_hat = alpha * real_images.data + (1 - alpha) * fake_images.data
+                        x_hat.requires_grad_(True)
+                        if self.type == 'can':
+                            pred_hat, _ = self.discriminator(x_hat)
+                        else:
+                            pred_hat = self.discriminator(x_hat)
+                        gradients = grad(outputs=pred_hat, inputs=x_hat, grad_outputs=torch.ones(pred_hat.size()).to(self.device),
+                                        create_graph=True, retain_graph=True, only_inputs=True)[0]
+
+                        gradient_penalty = lambda_ * ((gradients.view(gradients.size()[0], -1).norm(2, 1) - 1) ** 2).mean()
+                        disc_loss = disc_loss_fake + disc_loss_real + gradient_penalty
+                    else:
+                        disc_loss  =  disc_loss_fake  + disc_loss_real
+                    
                 
-                disc_loss_real = criterion(predicted_output_real,labels)
-                disc_loss_real.backward(retain_graph=True)
-                disc_x = predicted_output_real.mean().item()
+                    if self.type == 'can':
+                        disc_loss += disc_class_loss.mean()
 
-                # fake
+                    disc_x = disc_loss.mean().item()
+                    disc_loss.backward(retain_graph=True)
+                    self.disc_optimizer.step()
+                    
 
-                noise = torch.randn(batch_size,self.z_noise,1,1,device=self.device)
-                
-                fake_images = self.generator(noise)
-                labels.fill_(fake_label)
-        
-                if self.type == 'can':
-                    predicted_output_fake, predicted_styles_fake = self.discriminator(fake_images.detach())
-
-                else:
-                    predicted_output_fake = self.discriminator(fake_images.detach())
-                
-                disc_loss_fake = criterion(predicted_output_fake,labels)
-                disc_loss_fake.backward(retain_graph=True)
-                disc_gen_z_1 = predicted_output_fake.mean().item()
-                disc_loss = disc_loss_real + disc_loss_fake
-
-                if self.type == 'can':
-                    disc_loss += disc_class_loss 
-                
-                self.disc_optimizer.step()
 
                 # train generator
-         
+                for param in self.discriminator.parameters():
+                    param.requires_grad_(False)
+
                 self.generator.zero_grad()
                 labels.fill_(real_label)
 
                 if self.type == 'can':
                     predicted_output_fake, predicted_styles_fake = self.discriminator(fake_images)
+                    predicted_styles_fake = predicted_styles_fake.to(self.device)
 
                 else:
                     predicted_output_fake = self.discriminator(fake_images)
-
-                gen_loss = criterion(predicted_output_fake,labels)
-                gen_loss.backward(retain_graph=True)
-                disc_gen_z_2 = predicted_output_fake.mean().item()
+                
+                # gen_loss = criterion(predicted_output_fake,labels)
+                gen_loss = -torch.mean(predicted_output_fake)
+                disc_gen_z_2 = gen_loss.mean().item()
 
                 if self.type == 'can':
                     fake_batch_labels = 1.0/self.y_dim * torch.ones_like(predicted_styles_fake)
                     fake_batch_labels = torch.mean(fake_batch_labels,1).long().to(self.device)
                     gen_class_loss = style_criterion(predicted_styles_fake,fake_batch_labels)
-                    gen_class_loss.backward()
-                    gen_loss += gen_class_loss
-                    #disc_loss += torch.log(gen_class_loss)
+                    gen_class_loss.backward(retain_graph=True)
+                    gen_loss += gen_class_loss.mean()
+                    # not in the paper
+                    #disc_loss -= torch.log(gen_class_loss)
 
+                gen_loss.backward()
+                gen_iterations += 1
+                self.gen_optimizer.step()
 
-                self.gen_optimizer.step()     
+               
 
                 disc_loss_epoch.append(disc_loss.item())
                 gen_loss_epoch.append(gen_loss.item())    
@@ -256,7 +339,7 @@ class GAN:
                     disc_class_loss_epoch.append(disc_class_loss.item())
                     gen_class_loss_epoch.append(gen_class_loss.item())
                     
-      
+        
                 if self.type=='can':
 
                     print('[%d/%d][%d/%d] Loss_D: %.4f Loss_G: %.4f Class_D: %.4f Class_G: %.4f D(x): %.4f D(G(z)): %.4f / %.4f'
@@ -272,20 +355,21 @@ class GAN:
                     # training_notes_file.write('\n[%d/%d][%d/%d] Loss_D: %.4f Loss_G: %.4f Class_D: %.4f Class_G: %.4f D(x): %.4f D(G(z)): %.4f / %.4f'
                     #     % (epoch, self.num_epochs, i, len(dataloader),
                     #         disc_loss.item(), gen_loss.item(), disc_class_loss.item(), gen_class_loss.item(), disc_x, disc_gen_z_1, disc_gen_z_2))            
-                if (i > 0 and (i % 1000 == 0)) or i == (len(dataloader) -1):
+                if (i % 1000 == 0) or i == (len(dataloader) -1) or wdcgan_flag==False:
                     fake = self.generator(fixed_noise)
                     vutils.save_image(fake.data,
                             '%s/fake_samples_epoch_%03d_%04d.jpg' % (self.out_folder, epoch,i),
                             normalize=True)
-                i += 1
+                    wdcgan_flag=True
+             
+
 
             epoch_end_time = time.time()
             training_notes_file.write("\nEpoch training time: {} seconds".format(epoch_end_time-epoch_start_time))
 
 
              
-
-            # Metrics for Floydhub
+              # Metrics for Floydhub
             print('{{"metric": "disc_loss", "value": {:.4f}}}'.format(np.mean(disc_loss_epoch)))
             print('{{"metric": "gen_loss", "value": {:.4f}}}'.format(np.mean(gen_loss_epoch)))
 
@@ -325,6 +409,3 @@ class GAN:
         training_notes_file.close()
         losses_file.write(str(self.train_history))
         losses_file.close()
-        #get_loss_graphs(self.train_history,self.out_folder,self.gan_type)
-        #if self.type == 'can':
-        #    get_class_loss_graph(self.train_history,self.out_folder,self.gan_type)
