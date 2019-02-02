@@ -2,7 +2,7 @@ import os
 from PIL import Image
 from glob import glob
 
-data_dir = 'D:\\WikiArt\\wiki128\\'
+data_dir = "D:\imagenet\\train"#'D:\\WikiArt\\wiki128\\'
 
 def get_data(data_dir):
     data = glob(data_dir+"/*/*", recursive=True)
@@ -16,9 +16,9 @@ for f in data:
         try:
             img  = Image.open(f) # open the image file
             w, h = img.size
-            if w != 128:
+            if w != 32:
                 print("width bad", f, w)
-            if h != 128:
+            if h != 32:
                 print("height bad",f, h)
             
             img.verify() # verify that it is, in fact an image

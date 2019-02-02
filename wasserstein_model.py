@@ -21,6 +21,8 @@ import torch.nn.functional as F
 import torch.nn.parallel
 import torch.backends.cudnn as cudnn
 cudnn.benchmark=True
+import torch.nn.init as init
+
 
 import torch.optim as optim
 import torch.utils.data
@@ -81,28 +83,46 @@ class WGAN:
             m.weight.data.normal_(1.0, 0.02)
             m.bias.data.fill_(0)
 
-    # via https://github.com/caogang/wgan-gp/blob/master/gan_cifar10.py
-    def calc_gradient_penalty(self, batch_size, real_images, fake_images):
-        # print "real_data: ", real_data.size(), fake_data.size()
-        alpha = torch.rand(batch_size, 1)
-        alpha = alpha.expand(batch_size, real_images.nelement()//batch_size).contiguous().view(batch_size, 3, 64, 64).to(self.device)
-        
+    # thanks to https://github.com/jalola/improved-wgan-pytorch/blob/master/gan_train.py
+    def weight_init(self,m):
+        if isinstance(m, MyConvo2d): 
+            if m.conv.weight is not None:
+                if m.he_init:
+                    init.kaiming_uniform_(m.conv.weight)
+                else:
+                    init.xavier_uniform_(m.conv.weight)
+            if m.conv.bias is not None:
+                init.constant_(m.conv.bias, 0.0)
+        if isinstance(m, nn.Linear):
+            if m.weight is not None:
+                init.xavier_uniform_(m.weight)
+            if m.bias is not None:
+                init.constant_(m.bias, 0.0)
 
-        interpolates = alpha * real_images + ((1 - alpha) * fake_images)
+
+
+    def calc_gradient_penalty(self,netD, real_data, fake_data):
+        alpha = torch.rand(self.batch_size, 1)
+        alpha = alpha.expand(self.batch_size, int(real_data.nelement()/self.batch_size)).contiguous()
+        alpha = alpha.view(self.batch_size, 3, 64, 64)
+        alpha = alpha.to(self.device)
+        
+        fake_data = fake_data.view(self.batch_size, 3, 64, 64)
+        interpolates = alpha * real_data.detach() + ((1 - alpha) * fake_data.detach())
+
         interpolates = interpolates.to(self.device)
         interpolates.requires_grad_(True)
-        if self.type == 'can':
-            disc_interpolates, _ = self.discriminator(interpolates)
-        else:
-            disc_interpolates = self.discriminator(interpolates)
+
+        disc_interpolates = netD(interpolates)
+
         gradients = grad(outputs=disc_interpolates, inputs=interpolates,
                                 grad_outputs=torch.ones(disc_interpolates.size()).to(self.device),
                                 create_graph=True, retain_graph=True, only_inputs=True)[0]
-        gradients = gradients.view(gradients.size(0), -1)
 
-        gradient_penalty = ((gradients.norm(2, dim=1) - 1) ** 2).mean() * 10 #lambda
+        gradients = gradients.view(gradients.size(0), -1)                              
+        gradient_penalty = ((gradients.norm(2, dim=1) - 1) ** 2).mean() * 10 #10 = lambda
         return gradient_penalty
- 
+    
     def train(self):
         print("GPU/CPU:",torch.cuda.get_device_name(0))
         # Start timer
@@ -118,18 +138,27 @@ class WGAN:
                             transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
                         ])
             )
+        
+        if self.dataset == 'imagenet':
+            data = dset.ImageFolder(root= self.dataroot,
+                        transform=transforms.Compose([
+                            transforms.Resize(self.image_size),
+                            transforms.ToTensor(),
+                            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+                        ])
+            )
 
         else:
             # Get dataset
             data = get_dataset(self.dataroot)
         dataloader = torch.utils.data.DataLoader(data, batch_size=self.batch_size,
-                                         shuffle=True, num_workers=int(self.workers))
+                                         shuffle=True, num_workers=int(self.workers),drop_last=True,pin_memory=True)
 
         # # Set the type of GAN
         if self.type == "dcgan": 
             if self.gradient_penalty:
-                self.generator = DcganGenerator(self.z_noise, self.channels, self.num_gen_filters).to(self.device)
-                self.discriminator = WgangpDiscriminator(self.channels, self.num_disc_filters).to(self.device)
+                self.generator = GoodGenerator(64,64*64*3).to(self.device)
+                self.discriminator = GoodDiscriminator(64).to(self.device)
                 criterion = nn.BCELoss()
             else:
                 self.generator = DcganGenerator(self.z_noise, self.channels, self.num_gen_filters).to(self.device)
@@ -159,9 +188,12 @@ class WGAN:
             
 
         criterion = nn.BCELoss()
-        self.discriminator.apply(self.weights_init)
-        self.generator.apply(self.weights_init) 
-
+        if self.gradient_penalty:
+            self.discriminator.apply(self.weight_init)
+            self.generator.apply(self.weight_init) 
+        else:
+            self.discriminator.apply(self.weights_init)
+            self.generator.apply(self.weights_init) 
         if self.disc_path != '':
             self.discriminator.load_state_dict(torch.load(self.disc_path))
 
@@ -175,8 +207,12 @@ class WGAN:
         real_label = 1
         fake_label = 0
         lambda_ = 10
-     
-        
+        # thanks to https://github.com/jalola/improved-wgan-pytorch/blob/master/models/wgan.py
+        one = torch.tensor(1.0)
+        mone = torch.tensor(-1.0)  
+        one = one.to(self.device)
+        mone = mone.to(self.device)
+
 
    
         # Normalized noise
@@ -237,7 +273,7 @@ class WGAN:
                         predicted_output_real, predicted_styles_real = self.discriminator(real_images.detach())
                         predicted_styles_real = predicted_styles_real.to(self.device)
                         disc_class_loss = style_criterion(predicted_styles_real,real_image_labels)
-                        disc_class_loss.backward(retain_graph=True)
+                        disc_class_loss.backward()
                      
                     else:
                         predicted_output_real = self.discriminator(real_images.detach())
@@ -245,12 +281,13 @@ class WGAN:
                     # disc_loss_real = criterion(predicted_output_real,labels)
                     # disc_loss_real.backward(retain_graph=True)
 
-                    disc_loss_real = -torch.mean(predicted_output_real)
+                    disc_loss_real = torch.mean(predicted_output_real)
                     
 
                     # fake
 
-                    noise = torch.randn(batch_size,self.z_noise,1,1,device=self.device)
+                    noise = torch.randn(batch_size,self.z_noise)
+                    noise = noise.to(device=self.device)
                     with torch.no_grad():
                         noise_g = noise.detach()
                     fake_images = self.generator(noise_g)
@@ -274,27 +311,18 @@ class WGAN:
                     #via https://github.com/znxlwm/pytorch-generative-model-collections/blob/master/WGAN_GP.py
                     if self.gradient_penalty:
                         # gradient penalty
-                        alpha = torch.rand((real_images.size()[0], 1, 1, 1)).to(self.device) 
-                        x_hat = alpha * real_images.data + (1 - alpha) * fake_images.data
-                        x_hat.requires_grad_(True)
-                        if self.type == 'can':
-                            pred_hat, _ = self.discriminator(x_hat)
-                        else:
-                            pred_hat = self.discriminator(x_hat)
-                        gradients = grad(outputs=pred_hat, inputs=x_hat, grad_outputs=torch.ones(pred_hat.size()).to(self.device),
-                                        create_graph=True, retain_graph=True, only_inputs=True)[0]
+                        gradient_penalty = self.calc_gradient_penalty(self.discriminator,real_images,fake_images)
+                        disc_loss  =  disc_loss_fake  - disc_loss_real + gradient_penalty
 
-                        gradient_penalty = lambda_ * ((gradients.view(gradients.size()[0], -1).norm(2, 1) - 1) ** 2).mean()
-                        disc_loss = disc_loss_fake + disc_loss_real + gradient_penalty
                     else:
-                        disc_loss  =  disc_loss_fake  + disc_loss_real
+                        disc_loss  =  disc_loss_fake  - disc_loss_real
                     
                 
                     if self.type == 'can':
                         disc_loss += disc_class_loss.mean()
 
                     disc_x = disc_loss.mean().item()
-                    disc_loss.backward(retain_graph=True)
+                    disc_loss.backward()
                     self.disc_optimizer.step()
                     
 
@@ -304,7 +332,9 @@ class WGAN:
                     param.requires_grad_(False)
 
                 self.generator.zero_grad()
-                labels.fill_(real_label)
+                noise = torch.randn(batch_size,self.z_noise)
+                noise = noise.to(device=self.device)                
+                fake_images = self.generator(noise)
 
                 if self.type == 'can':
                     predicted_output_fake, predicted_styles_fake = self.discriminator(fake_images)
@@ -314,19 +344,24 @@ class WGAN:
                     predicted_output_fake = self.discriminator(fake_images)
                 
                 # gen_loss = criterion(predicted_output_fake,labels)
-                gen_loss = -torch.mean(predicted_output_fake)
+                if self.gradient_penalty:
+                    gen_loss = torch.mean(predicted_output_fake)
+                    gen_loss.backward(mone)
+                    gen_loss = -gen_loss
+                else:
+                    gen_loss = -torch.mean(predicted_output_fake)
                 disc_gen_z_2 = gen_loss.mean().item()
 
                 if self.type == 'can':
                     fake_batch_labels = 1.0/self.y_dim * torch.ones_like(predicted_styles_fake)
                     fake_batch_labels = torch.mean(fake_batch_labels,1).long().to(self.device)
                     gen_class_loss = style_criterion(predicted_styles_fake,fake_batch_labels)
-                    gen_class_loss.backward(retain_graph=True)
+                    gen_class_loss.backward()
                     gen_loss += gen_class_loss.mean()
                     # not in the paper
                     #disc_loss -= torch.log(gen_class_loss)
-
-                gen_loss.backward()
+                if not self.gradient_penalty:
+                    gen_loss.backward()
                 gen_iterations += 1
                 self.gen_optimizer.step()
 
@@ -335,12 +370,15 @@ class WGAN:
                 disc_loss_epoch.append(disc_loss.item())
                 gen_loss_epoch.append(gen_loss.item())    
 
+                fixed_noise = torch.randn(batch_size,self.z_noise)
+                fixed_noise = fixed_noise.to(device=self.device)     
                 if self.type=="can":
                     disc_class_loss_epoch.append(disc_class_loss.item())
                     gen_class_loss_epoch.append(gen_class_loss.item())
                     
         
                 if self.type=='can':
+                
 
                     print('[%d/%d][%d/%d] Loss_D: %.4f Loss_G: %.4f Class_D: %.4f Class_G: %.4f D(x): %.4f D(G(z)): %.4f / %.4f'
                         % (epoch, self.num_epochs, i, len(dataloader),
@@ -355,11 +393,22 @@ class WGAN:
                     # training_notes_file.write('\n[%d/%d][%d/%d] Loss_D: %.4f Loss_G: %.4f Class_D: %.4f Class_G: %.4f D(x): %.4f D(G(z)): %.4f / %.4f'
                     #     % (epoch, self.num_epochs, i, len(dataloader),
                     #         disc_loss.item(), gen_loss.item(), disc_class_loss.item(), gen_class_loss.item(), disc_x, disc_gen_z_1, disc_gen_z_2))            
-                if (i % 1000 == 0) or i == (len(dataloader) -1) or wdcgan_flag==False:
-                    fake = self.generator(fixed_noise)
-                    vutils.save_image(fake.data,
+                if (i % 10000 == 0) or i == (len(dataloader) -1) or wdcgan_flag==False:
+                    if gradient_penalty:
+                        with torch.no_grad():
+    	                    noisev = noise 
+                        samples = self.generator(noisev)
+                        samples = samples.view(self.batch_size, 3, 64, 64)
+                        vutils.save_image(samples.data,
                             '%s/fake_samples_epoch_%03d_%04d.jpg' % (self.out_folder, epoch,i),
                             normalize=True)
+                    else:
+                        with torch.no_grad():
+    	                    noisev = noise 
+                        samples = self.generator(noisev)
+                        vutils.save_image(samples.data,
+                        '%s/fake_samples_epoch_%03d_%04d.jpg' % (self.out_folder, epoch,i),
+                        normalize=True)
                     wdcgan_flag=True
              
 

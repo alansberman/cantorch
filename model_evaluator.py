@@ -1,146 +1,320 @@
-# # model_evaluator.py
-# # 26/11/2018
+# model_evaluator.py
+# 26/11/2018
 
-# import argparse
-# import os
-# from generators import *
-# from discriminators import *
-# from ops import *
-# from model import *
-# from wasserstein_model import *
-# from utils import *
-# import random
-# import torch
+import argparse
+import os
+from generators import *
+from sampler import *
+from discriminators import *
+from ops import *
+from model import *
+from wasserstein_model import *
+from utils import *
+import random
+import torch
 
-# import numpy as np
-# import sys
-# import torch.nn as nn
-# import torch.nn.functional as F
-# import torch.nn.parallel
-# import torch.backends.cudnn as cudnn
-# cudnn.benchmark=True
+from tpot import TPOTClassifier
 
-# import torch.optim as optim
-# import torch.utils.data
-# import torchvision.datasets as dset
-# import torchvision.transforms as transforms
-# import torchvision.utils as vutils
-# from torch.autograd import Variable
-# import time
-
-
-# parser = argparse.ArgumentParser()
-# parser.add_argument('--dataset',  help='cifar10 | lsun | imagenet | wikiart',default='cifar10')
-# parser.add_argument('--dataroot', help='path to dataset',default="D:\\WikiArt\\") # D:\\WikiArt\\wikiart\\ #/mydata
-# parser.add_argument('--workers', type=int, help='number of data loading workers', default=0)
-# parser.add_argument('--gan_type', type=str, help='dcgan | wgan | can', default='can')
-# parser.add_argument('--batch_size', type=int, default=128, help='input batch size')
-# parser.add_argument('--image_size', type=int, default=64, help='the height / width of the input image to network')
-# parser.add_argument('--optimizer', type=str, default="Adam", help='Adam | SGD | RMSProp')
-# parser.add_argument('--z_noise', type=int, default=25, help='size of the latent z vector')
-# parser.add_argument('--y_dim',type=int,help="number of output/target classes",default=10)
-# parser.add_argument('--channels',type=int,help="number of image channels",default=3)
-# parser.add_argument('--num_gen_filters', type=int, default=64)
-# parser.add_argument('--power', type=int, default=8, help="1-number of hidden layers")
-# parser.add_argument('--disc_iterations', type=int, default=5,help="ratio of discriminator updates to generator")
-# parser.add_argument('--num_disc_filters', type=int, default=64)
-# parser.add_argument('--num_epochs', type=int, default=100, help='number of epochs to train for')
-# parser.add_argument('--lr', type=float, default=0.0001, help='learning rate, default=0.0002')
-# parser.add_argument('--beta1', type=float, default=0.5, help='beta1 for adam. default=0.5') 
-# parser.add_argument('--lower_clamp', type=float, default=-0.01, help='lower clamp for params')
-# parser.add_argument('--upper_clamp', type=float, default=0.01, help='upper clamp for params')
-# parser.add_argument('--cuda',  action='store_true',default=True, help='enables cuda')
-# parser.add_argument('--num_gpu', type=int, default=1, help='number of GPUs to use')
-# parser.add_argument('--gen_path', default='', help="path to netG (to continue training)")
-# parser.add_argument('--disc_path', default='', help="path to netD (to continue training)")
-# parser.add_argument('--out_folder', default="/output", help='folder to output images and model checkpoints') #"/output"
-# parser.add_argument('--wgan', type=bool, default=False, help='if training a la WGAN') #"/output"
-# parser.add_argument('--lsgan', type=bool, default=False, help='if training with LSGAN') #"/output"
-# parser.add_argument('--num_critic', type=int, default=5,help="D:G training") #"/output"
-# parser.add_argument('--gradient_penalty', type=bool, default=False,help="if training with WGANGP") #"/output"
+import numpy as np
+import sys
+import torch.nn as nn
+import torch.nn.functional as F
+import torch.nn.parallel
+import torch.backends.cudnn as cudnn
+cudnn.benchmark=True
+import PIL
+from hpsklearn import HyperoptEstimator, any_classifier
+from hpsklearn import components as hpc
+from hyperopt import tpe
+import torch.optim as optim
+import torch.utils.data
+import torchvision.datasets as dset
+import torchvision.transforms as transforms
+import torchvision.utils as vutils
+from torch.autograd import Variable
+import time
+from sklearn.svm import LinearSVC
+from sklearn import linear_model
+from sklearn.datasets import make_classification
 
 
-# parser.add_argument('--manual_seed', type=int, help='manual seed')
-# directory = "C:\\Users\\alan\\Desktop\\experiments\\"
-# device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-
-# options = parser.parse_args()
-# files = get_data(directory)
-# models = []
-# for f in files:
-#     if f.endswith(".pth"):
-#         models.append(f)
-
-# def main():
-#     discriminator = Can64Discriminator(options.channels, options.y_dim, options.num_disc_filters).to(device)
-#     criterion = nn.BCELoss()
-#     style_criterion = nn.CrossEntropyLoss()
-#     m = torch.load(models[0])
-#     discriminator.load_state_dict(m)
-#     labels = torch.full((options.batch_size,), 1, device=device)
-
-#     # Generator class/style labels
-#     gen_style_labels = torch.LongTensor(options.batch_size)
-#     gen_style_labels = gen_style_labels.fill_(1)
-#     #results = open("classification_accuracy.txt","w")
-#     if options.dataset == 'cifar10':
-#         data = dset.CIFAR10(root= options.dataroot, download=True,
-#                         transform=transforms.Compose([
-#                             transforms.Resize(options.image_size),
-#                             transforms.ToTensor(),
-#                             transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
-#                         ])
-#         )
-#     else:
-#         data = get_dataset(options.dataroot)
-       
-#         # # Set the type of GAN
-#     dataloader = torch.utils.data.DataLoader(data, batch_size=options.batch_size,shuffle=True, num_workers=int(options.workers))
-#     # Heavily inspired by https://github.com/pytorch/examples/blob/master/dcgan/main.py
-#     data_iterator = iter(dataloader)
-#     i = 0
-#     num_batches = 0
-#     correct = 0
-#     total = 0
-#     with torch.no_grad():
-#         for data in dataloader:
-#             real_images, image_labels = data
-#             print(image_labels)
-#             real_images = real_images.to(device) 
-#             outputs, predictions = discriminator(real_images)
-#             print(predictions)
-#             total += labels.size(0)
-#             correct += (predictions == image_labels).sum().item()
-#             batch_size = real_images.size(0)
-#             # loss = 0
-#             # class_loss = 0
-
-#             # real_image_labels = torch.LongTensor(batch_size).to(device)
-#             # real_image_labels.copy_(image_labels)
-#             # labels = torch.full((batch_size,), 1, device=device)
+parser = argparse.ArgumentParser()
+parser.add_argument('--dataset',  help='cifar10 | lsun | imagenet | wikiart',default='cifar10')
+parser.add_argument('--dataroot', help='path to dataset',default="D:\WikiArt\\") # D:\\WikiArt\\wikiart\\ #/mydata
+parser.add_argument('--workers', type=int, help='number of data loading workers', default=0)
+parser.add_argument('--gan_type', type=str, help='dcgan | wgan | can', default='can')
+parser.add_argument('--batch_size', type=int, default=64, help='input batch size')
+parser.add_argument('--image_size', type=int, default=64, help='the height / width of the input image to network')
+parser.add_argument('--optimizer', type=str, default="Adam", help='Adam | SGD | RMSProp')
+parser.add_argument('--z_noise', type=int, default=256, help='size of the latent z vector')
+parser.add_argument('--y_dim',type=int,help="number of output/target classes",default=10)
+parser.add_argument('--channels',type=int,help="number of image channels",default=3)
+parser.add_argument('--num_gen_filters', type=int, default=64)
+parser.add_argument('--power', type=int, default=8, help="1-number of hidden layers")
+parser.add_argument('--disc_iterations', type=int, default=5,help="ratio of discriminator updates to generator")
+parser.add_argument('--num_disc_filters', type=int, default=64)
+parser.add_argument('--num_epochs', type=int, default=100, help='number of epochs to train for')
+parser.add_argument('--lr', type=float, default=0.0001, help='learning rate, default=0.0002')
+parser.add_argument('--beta1', type=float, default=0.5, help='beta1 for adam. default=0.5') 
+parser.add_argument('--lower_clamp', type=float, default=-0.01, help='lower clamp for params')
+parser.add_argument('--upper_clamp', type=float, default=0.01, help='upper clamp for params')
+parser.add_argument('--cuda',  action='store_true',default=True, help='enables cuda')
+parser.add_argument('--num_gpu', type=int, default=1, help='number of GPUs to use')
+parser.add_argument('--gen_path', default='', help="path to netG (to continue training)")
+parser.add_argument('--disc_path', default="C:\\Users\\alan\\Desktop\\experiments\\dcgan_imagenet_64\\netD_epoch_24.pth", help="path to netD (to continue training)")
+parser.add_argument('--out_folder', default="/output", help='folder to output images and model checkpoints') #"/output"
+parser.add_argument('--wgan', type=bool, default=False, help='if training a la WGAN') #"/output"
+parser.add_argument('--lsgan', type=bool, default=False, help='if training with LSGAN') #"/output"
+parser.add_argument('--num_critic', type=int, default=5,help="D:G training") #"/output"
+parser.add_argument('--gradient_penalty', type=bool, default=False,help="if training with WGANGP") #"/output"
+parser.add_argument('--svhn', type=bool, default=False,help="if testing with SVHN") #"/output"
 
 
-#             # predicte
-#             # label smoothing
-#             # rand_labels = np.random.uniform(low=0.7, high=1.2, size=(batch_size,))
-#             # r_labels = torch.from_numpy(rand_labels)
-#             # labels.copy_(r_labels)
-#             #print(labels)
-#             # if options.gan_type == 'can':
-#             #     predicted_output_real, predicted_styles_real = discriminator(real_images.detach())
-#             #     total+=batch_size
-#             #     correct += (predicted_output_real==image_labels).sum().item()
-#             #     disc_class_loss = style_criterion(predicted_styles_real,real_image_labels)
-#             #     results.write("Batch "+str(i)+" style classification loss:"+str(disc_class_loss.mean().item())+"\n")
 
-#             # else:
-#             #     predicted_output_real = options.discriminator(real_images.detach())
-            
-#             # disc_loss_real = criterion(predicted_output_real,labels).mean().item()
-#             # results.write("Batch "+str(i)+" real/fake loss:"+str(disc_loss_real)+"\n")
-#             # i+=1
-#     print(100* (correct/total))
+# custom weights initialization called on self.generator and self.discriminator
+def weights_init(m):
+    classname = m.__class__.__name__
+    if classname.find('Conv') != -1:
+        m.weight.data.normal_(0.0, 0.02)
+    elif classname.find('BatchNorm') != -1:
+        m.weight.data.normal_(1.0, 0.02)
+        m.bias.data.fill_(0)
 
 
-# if __name__ == '__main__':
-#     main()
+
+    # thanks to https://github.com/jalola/improved-wgan-pytorch/blob/master/gan_train.py
+def weight_init(m):
+    if isinstance(m, MyConvo2d): 
+        if m.conv.weight is not None:
+            if m.he_init:
+                init.kaiming_uniform_(m.conv.weight)
+            else:
+                init.xavier_uniform_(m.conv.weight)
+        if m.conv.bias is not None:
+            init.constant_(m.conv.bias, 0.0)
+    if isinstance(m, nn.Linear):
+        if m.weight is not None:
+            init.xavier_uniform_(m.weight)
+        if m.bias is not None:
+            init.constant_(m.bias, 0.0)
+
+
+def main():
+    parser.add_argument('--manual_seed', type=int, help='manual seed')
+    directory = "C:\\Users\\alan\\Desktop\\experiments\\"
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
+    options = parser.parse_args()
+    # files = get_data(directory)
+    # models = []
+    # for f in files:
+    #     if f.endswith(".pth"):
+    #         models.append(f)
+    ngpu = options.num_gpu
+    channels = options.channels
+    num_disc_filters = options.num_disc_filters
+
+    netD = DiscriminatorOrig(1,3,64).to(device)
+    if options.gradient_penalty:
+        netD.apply(weight_init)
+    else:
+        netD.apply(weights_init)
+    if options.disc_path != '':
+        netD.load_state_dict(torch.load(options.disc_path))
+
+    if options.gradient_penalty:
+        layers = nn.Sequential(*list(netD.children()))
+    else:
+        layers = nn.Sequential(*list(netD.children()))[0]
+    conv_layers = []
+    # print(type(layers))
+    # print(layers)
+    # sys.exit(0)
+
+    if options.gradient_penalty:
+        for layer in layers:
+            if type(layer)==MyConvo2d:
+                conv_layers.append(*layer.children())
+            if type(layer)==ResidualBlock:
+                for item in list(layer.children()):
+                    if type(item)==MyConvo2d:
+                        conv_layers.append(*item.children())
+    else:
+        for layer in layers:
+            if type(layer)== torch.nn.modules.conv.Conv2d:
+                conv_layers.append(layer)
+        # conv_layers.append(layers[0])
+        # for layer in range(1,len(layers)+1):
+        #     if type(layers[layer])==ResidualBlock:
+
+        #         if type(item) == torch.nn.modules.conv.Conv2d:
+        #             conv_layers.append(item)
+    print(netD)
+
+
+    def get_conv_activations_wgangp(name,count):
+        pool = nn.AdaptiveMaxPool2d(4)
+        def hook(module, input, output):
+            activations[str(name)+str(count)] = pool(output).view(output.size(0), -1)
+        return hook
+    def get_conv_activations(name):
+        pool = nn.AdaptiveMaxPool2d(4)
+        def hook(module, input, output):
+            activations[name] = pool(output).view(output.size(0), -1)
+        return hook
+
+    # self.conv1 = MyConvo2d(3, self.dim, 3, he_init = False)
+    # self.rb1 = ResidualBlock(self.dim, 2*self.dim, 3, resample = 'down', hw=DIM)
+    # self.rb2 = ResidualBlock(2*self.dim, 4*self.dim, 3, resample = 'down', hw=int(DIM/2))
+    # self.rb3 = ResidualBlock(4*self.dim, 8*self.dim, 3, resample = 'down', hw=int(DIM/4))
+    # self.rb4 = ResidualBlock(8*self.dim, 8*self.dim, 3, resample = 'down', hw=int(DIM/8))
+    # self.ln1 = nn.Linear(4*4*8*self.dim, 1)
+
+
+    # Register forward hooks to get activations
+    if options.gradient_penalty:
+        netD.conv1.register_forward_hook(get_conv_activations_wgangp('conv',1))
+        netD.rb1.register_forward_hook(get_conv_activations_wgangp('conv',2))
+        netD.rb2.register_forward_hook(get_conv_activations_wgangp('conv',3))
+        netD.rb3.register_forward_hook(get_conv_activations_wgangp('conv',4))
+        netD.rb4.register_forward_hook(get_conv_activations_wgangp('conv',5))
+
+    else:
+        netD.main[0].register_forward_hook(get_conv_activations('conv1'))
+        netD.main[2].register_forward_hook(get_conv_activations('conv2'))
+        netD.main[5].register_forward_hook(get_conv_activations('conv3'))
+        netD.main[8].register_forward_hook(get_conv_activations('conv4'))
+        netD.main[11].register_forward_hook(get_conv_activations('conv5'))
+
+    if not options.svhn:
+        training_data = dset.CIFAR10(root= options.dataroot, download=False,train=True,
+                                transform=transforms.Compose([
+                                    transforms.Resize(options.image_size),
+                                    transforms.ToTensor(),
+                                    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+                                ])
+                    )
+        test_data = dset.CIFAR10(root= options.dataroot, download=False,train=False,
+                                transform=transforms.Compose([
+                                    transforms.Resize(options.image_size),
+                                    transforms.ToTensor(),
+                                    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+                                ])
+                    )
+        train_dataloader = torch.utils.data.DataLoader(training_data, batch_size=1,
+                                                shuffle=True, num_workers=int(options.workers))
+
+        test_dataloader = torch.utils.data.DataLoader(test_data, batch_size=1,
+                                            shuffle=True,
+                                                num_workers=int(options.workers))
+
+    else:
+        # thanks to @Jordi_de_la_Torre https://discuss.pytorch.org/t/balanced-sampling-between-classes-with-torchvision-dataloader/2703/2
+        svhn_train = dset.SVHN(root="D:\svhn",split="train",download=False, transform=transforms.Compose([
+                                    transforms.Resize(options.image_size),
+                                    transforms.ToTensor(),
+                                    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+                                ]))
+        svhn_test = dset.SVHN(root="D:\svhn",split="test",download=False, transform=transforms.Compose([
+                                    transforms.Resize(options.image_size),
+                                    transforms.ToTensor(),
+                                    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+                                ]))
+
+        train_dataloader = torch.utils.data.DataLoader(
+            svhn_train, 
+            shuffle=True,
+            batch_size=1, 
+            num_workers=int(options.workers), pin_memory=True) 
+
+        test_dataloader = torch.utils.data.DataLoader(
+            svhn_test, 
+            sampler=ImbalancedDatasetSampler(svhn_test),
+            batch_size=1, 
+            num_workers=int(options.workers), pin_memory=True) 
+    training_iter = iter(train_dataloader)
+    test_iter = iter(test_dataloader)
+    print(len(train_dataloader),len(test_dataloader))
+    i = 0
+    x_train = []
+    # Heavily inspired by https://github.com/pytorch/examples/blob/master/dcgan/main.py
+    # x=[]
+    y_train=[]
+    while i < len(train_dataloader):
+        data = training_iter.next()
+        data[0] = data[0].to(device)
+        activations = {}
+        output = netD(data[0])
+
+        get_conv_activations('conv1')
+        get_conv_activations('conv2')
+        get_conv_activations('conv3')
+        get_conv_activations('conv4')
+        get_conv_activations('conv5')
+        act_flat = []
+        y_train.append(data[1])
+    
+        for key in activations:
+            act_flat.append(activations[key])
+        act_flat = torch.cat(act_flat, 1)[0]
+        x_train.append(act_flat.detach().cpu().numpy())
+        i+=1
+
+    x_train = np.asarray(x_train)
+    print(x_train.shape)
+    y_train = np.asarray(y_train)
+    print(y_train.shape)
+    j=0
+    x_test=[]
+    y_test=[]
+
+    if not options.svhn:
+        test_length = len(test_dataloader)
+    else:
+        test_length = 10000
+    while j < test_length:
+        data = test_iter.next()
+        data[0] = data[0].to(device)
+        activations = {}
+        output = netD(data[0])
+        get_conv_activations('conv1')
+        get_conv_activations('conv2')
+        get_conv_activations('conv3')
+        get_conv_activations('conv4')
+        get_conv_activations('conv5')
+        act_flat = []
+        y_test.append(data[1])
+        for key in activations:
+            act_flat.append(activations[key])
+        act_flat = torch.cat(act_flat, 1)[0]
+        x_test.append(act_flat.detach().cpu().numpy())
+        j+=1
+
+    x_test = np.asarray(x_test)
+    y_test = np.asarray(y_test)   
+
+    #output_file = open("wgangp_svhn.txt","w")
+    #model = HyperoptEstimator(classifier=hpc.svc_linear('mySVC'),trial_timeout=1)
+    # model = HyperoptEstimator(classifier=any_classifier('my_clf'),
+    #                       algo=tpe.suggest,
+    #                       max_evals=10,
+    #                       trial_timeout=30)
+    model = TPOTClassifier(generations=5, population_size=20, verbosity=2)
+
+
+    #model = linear_model.SGDClassifier()
+    model.fit(x_train,y_train)
+    # #print(model,"is the model")
+    # predictions = model.predict(x_test)
+    # print(predictions,"are the predictions")
+    print(model.score(x_test,y_test), "is the score")
+    # score = model.score(x_test,y_test)
+    # output_file.write(str(score)+" is the score \n")
+    # output_file.write(str(np.asarray(predictions))+"\n")
+    # output_file.write(str(np.asarray(y_test))+"\n")
+    # output_file.close()
+    model.export('tpot_mnist_pipeline.py')
+
+
+if __name__=="__main__":
+    main()
