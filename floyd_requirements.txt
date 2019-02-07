@@ -1,1 +1,4 @@
 lmdb
+sklearn
+hyperopt
+hpsklearn

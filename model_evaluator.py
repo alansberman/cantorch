@@ -12,9 +12,12 @@ from wasserstein_model import *
 from utils import *
 import random
 import torch
+from sklearn.model_selection import GridSearchCV
+from sklearn.metrics import classification_report
+import parfit.parfit as pf
 
-from tpot import TPOTClassifier
-
+#from tpot import TPOTClassifier
+#import autosklearn.classification as ac
 import numpy as np
 import sys
 import torch.nn as nn
@@ -36,7 +39,9 @@ import time
 from sklearn.svm import LinearSVC
 from sklearn import linear_model
 from sklearn.datasets import make_classification
-
+from sklearn.model_selection import ParameterGrid
+from sklearn.metrics import accuracy_score
+import warnings
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--dataset',  help='cifar10 | lsun | imagenet | wikiart',default='cifar10')
@@ -44,7 +49,7 @@ parser.add_argument('--dataroot', help='path to dataset',default="D:\WikiArt\\")
 parser.add_argument('--workers', type=int, help='number of data loading workers', default=0)
 parser.add_argument('--gan_type', type=str, help='dcgan | wgan | can', default='can')
 parser.add_argument('--batch_size', type=int, default=64, help='input batch size')
-parser.add_argument('--image_size', type=int, default=64, help='the height / width of the input image to network')
+parser.add_argument('--image_size', type=int, default=32, help='the height / width of the input image to network')
 parser.add_argument('--optimizer', type=str, default="Adam", help='Adam | SGD | RMSProp')
 parser.add_argument('--z_noise', type=int, default=256, help='size of the latent z vector')
 parser.add_argument('--y_dim',type=int,help="number of output/target classes",default=10)
@@ -61,12 +66,12 @@ parser.add_argument('--upper_clamp', type=float, default=0.01, help='upper clamp
 parser.add_argument('--cuda',  action='store_true',default=True, help='enables cuda')
 parser.add_argument('--num_gpu', type=int, default=1, help='number of GPUs to use')
 parser.add_argument('--gen_path', default='', help="path to netG (to continue training)")
-parser.add_argument('--disc_path', default="C:\\Users\\alan\\Desktop\\experiments\\dcgan_imagenet_64\\netD_epoch_24.pth", help="path to netD (to continue training)")
+parser.add_argument('--disc_path', default="C:\\Users\\alan\\Desktop\\experiments\\wgangp_imagenet_32\\netD_epoch_24.pth", help="path to netD (to continue training)")
 parser.add_argument('--out_folder', default="/output", help='folder to output images and model checkpoints') #"/output"
 parser.add_argument('--wgan', type=bool, default=False, help='if training a la WGAN') #"/output"
 parser.add_argument('--lsgan', type=bool, default=False, help='if training with LSGAN') #"/output"
 parser.add_argument('--num_critic', type=int, default=5,help="D:G training") #"/output"
-parser.add_argument('--gradient_penalty', type=bool, default=False,help="if training with WGANGP") #"/output"
+parser.add_argument('--gradient_penalty', type=bool, default=True,help="if training with WGANGP") #"/output"
 parser.add_argument('--svhn', type=bool, default=False,help="if testing with SVHN") #"/output"
 
 
@@ -100,6 +105,10 @@ def weight_init(m):
 
 
 def main():
+    # Thanks to https://stackoverflow.com/questions/32612180/eliminating-warnings-from-scikit-learn
+    def warn(*args, **kwargs):
+        pass
+    warnings.warn = warn
     parser.add_argument('--manual_seed', type=int, help='manual seed')
     directory = "C:\\Users\\alan\\Desktop\\experiments\\"
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -114,7 +123,7 @@ def main():
     channels = options.channels
     num_disc_filters = options.num_disc_filters
 
-    netD = DiscriminatorOrig(1,3,64).to(device)
+    netD = GoodDiscriminator(32).to(device)
     if options.gradient_penalty:
         netD.apply(weight_init)
     else:
@@ -240,7 +249,7 @@ def main():
     # Heavily inspired by https://github.com/pytorch/examples/blob/master/dcgan/main.py
     # x=[]
     y_train=[]
-    while i < len(train_dataloader):
+    while i < 50000:
         data = training_iter.next()
         data[0] = data[0].to(device)
         activations = {}
@@ -293,27 +302,43 @@ def main():
     x_test = np.asarray(x_test)
     y_test = np.asarray(y_test)   
 
-    #output_file = open("wgangp_svhn.txt","w")
-    #model = HyperoptEstimator(classifier=hpc.svc_linear('mySVC'),trial_timeout=1)
+    output_file = open("wgangp_cifar_32_hpe.txt","w")
+    model = HyperoptEstimator(classifier=hpc.sgd('_sgd',penalty='l2',n_jobs=-1),max_evals=25,trial_timeout=1200)
     # model = HyperoptEstimator(classifier=any_classifier('my_clf'),
     #                       algo=tpe.suggest,
     #                       max_evals=10,
     #                       trial_timeout=30)
-    model = TPOTClassifier(generations=5, population_size=20, verbosity=2)
-
-
-    #model = linear_model.SGDClassifier()
+    #model = TPOTClassifier(generations=5, population_size=20, verbosity=2)
+    # model = ac.AutoSklearnClassifier()
+    #model = linear_model.
+    #model = linear_model.SGDClassifier(n_jobs=-1)
+    # grid = {
+    #     'alpha': [1e-4,1e-3,1e-2,1e-1,1e0,1e1,1e2,1e3],
+    #     'max_iter': [1000],
+    #     'loss': ['hinge'],
+    #     'penalty': ['l2'],
+    #     'n_jobs': [-1]
+    # }
+    # param_grid = ParameterGrid(grid)
+    # best_model, best_score, all_models, all_scores = pf.bestFit(linear_model.SGDClassifier,param_grid,x_train,y_train,
+    # x_test,y_test,metric=accuracy_score,scoreLabel='Acc')
+    # print(best_model,best_score)
     model.fit(x_train,y_train)
     # #print(model,"is the model")
     # predictions = model.predict(x_test)
     # print(predictions,"are the predictions")
-    print(model.score(x_test,y_test), "is the score")
+    score = model.score(x_test,y_test)
+    print(str(score)+ "is the score")
+    best = str(model.best_model())
+    print(best)
     # score = model.score(x_test,y_test)
-    # output_file.write(str(score)+" is the score \n")
+    output_file.write(str(score)+" is the score \n")
+    output_file.write("\n"+str(best))
+    #output_file.write("\n"+str(best))
     # output_file.write(str(np.asarray(predictions))+"\n")
     # output_file.write(str(np.asarray(y_test))+"\n")
-    # output_file.close()
-    model.export('tpot_mnist_pipeline.py')
+    output_file.close()
+    #model.export('tpot_mnist_pipeline.py')
 
 
 if __name__=="__main__":

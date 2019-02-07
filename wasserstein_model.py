@@ -102,6 +102,7 @@ class WGAN:
 
 
     def calc_gradient_penalty(self,netD, real_data, fake_data):
+        # first 32s were self.batch_size
         alpha = torch.rand(self.batch_size, 1)
         alpha = alpha.expand(self.batch_size, int(real_data.nelement()/self.batch_size)).contiguous()
         alpha = alpha.view(self.batch_size, 3, 64, 64)
@@ -157,8 +158,8 @@ class WGAN:
         # # Set the type of GAN
         if self.type == "dcgan": 
             if self.gradient_penalty:
-                self.generator = GoodGenerator(64,64*64*3).to(self.device)
-                self.discriminator = GoodDiscriminator(64).to(self.device)
+                self.generator = GoodGenerator(32,32*32*3).to(self.device)
+                self.discriminator = GoodDiscriminator(32).to(self.device)
                 criterion = nn.BCELoss()
             else:
                 self.generator = DcganGenerator(self.z_noise, self.channels, self.num_gen_filters).to(self.device)

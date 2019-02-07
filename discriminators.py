@@ -752,3 +752,65 @@ class WgangpDiscriminator(nn.Module):
         
         return output.view(-1, 1).squeeze(1)
 
+
+class Discriminator32(nn.Module):
+    def __init__(self, ngpu,channels,num_disc_filters): 
+        super(Discriminator32, self).__init__()
+        self.ngpu = ngpu
+        self.main = nn.Sequential(
+            # input is (nc) x 64 x 64
+            nn.Conv2d(channels, num_disc_filters, 4, 2, 1, bias=False),
+            nn.LeakyReLU(0.2, inplace=True),
+            # state size. (ndf) x 32 x 32
+            nn.Conv2d(num_disc_filters, num_disc_filters * 2, 4, 2, 1, bias=False),
+            nn.BatchNorm2d(num_disc_filters * 2),
+            nn.LeakyReLU(0.2, inplace=True),
+            # state size. (ndf*2) x 16 x 16
+            nn.Conv2d(num_disc_filters * 2, num_disc_filters * 4, 4, 2, 1, bias=False),
+            nn.BatchNorm2d(num_disc_filters * 4),
+            nn.LeakyReLU(0.2, inplace=True),
+            # state size. (ndf*4) x 8 x 8
+            nn.Conv2d(num_disc_filters * 4, num_disc_filters * 8, 4, 2, 1, bias=False),
+            nn.BatchNorm2d(num_disc_filters * 8),
+            nn.LeakyReLU(0.2, inplace=True),
+            # state size. (ndf*8) x 4 x 4
+            nn.Conv2d(num_disc_filters * 8, 1, 2, 1, 0, bias=False),
+            nn.Sigmoid()
+        )
+
+    def forward(self, input):
+        if input.is_cuda and self.ngpu > 1:
+            output = nn.parallel.data_parallel(self.main, input, range(self.ngpu))
+        else:
+            output = self.main(input)
+
+        return output.view(-1, 1).squeeze(1)
+
+
+#thanks to https://github.com/jalola/improved-wgan-pytorch/blob/master/models/wgan.py
+class GoodDiscriminator(nn.Module):
+    def __init__(self, dim=DIM):
+        super(GoodDiscriminator, self).__init__()
+
+        self.dim = dim
+
+        self.conv1 = MyConvo2d(3, self.dim, 3, he_init = False)
+        self.rb1 = ResidualBlock(self.dim, 2*self.dim, 3, resample = 'down', hw=DIM)
+        self.rb2 = ResidualBlock(2*self.dim, 4*self.dim, 3, resample = 'down', hw=int(DIM/2))
+        self.rb3 = ResidualBlock(4*self.dim, 8*self.dim, 3, resample = 'down', hw=int(DIM/4))
+        self.rb4 = ResidualBlock(8*self.dim, 8*self.dim, 3, resample = 'down', hw=int(DIM/8))
+        self.ln1 = nn.Linear(4*4*8*self.dim, 1)
+
+    def forward(self, input):
+        output = input.contiguous()
+        #32,32 was DIM,DIM
+        output = output.view(-1, 3, 32, 32)
+        output = self.conv1(output)
+        output = self.rb1(output)
+        output = self.rb2(output)
+        output = self.rb3(output)
+        output = self.rb4(output)
+        output = output.view(-1, 4*4*8*self.dim)
+        output = self.ln1(output)
+        output = output.view(-1)
+        return output

@@ -169,7 +169,6 @@ class MyConvo2d(nn.Module):
 class ResidualBlock(nn.Module):
     def __init__(self, input_dim, output_dim, kernel_size, resample=None, hw=DIM):
         super(ResidualBlock, self).__init__()
-
         self.input_dim = input_dim
         self.output_dim = output_dim
         self.kernel_size = kernel_size
@@ -309,7 +308,8 @@ class GoodDiscriminator(nn.Module):
 
     def forward(self, input):
         output = input.contiguous()
-        output = output.view(-1, 3, DIM, DIM)
+        #32,32 was DIM,DIM
+        output = output.view(-1, 3, 32, 32)
         output = self.conv1(output)
         output = self.rb1(output)
         output = self.rb2(output)
