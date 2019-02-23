@@ -63,7 +63,8 @@ class GAN:
         self.out_folder = options.out_folder
         self.manual_seed = options.manual_seed
         self.lsgan = options.lsgan
-       
+        self.smoothing = options.smoothing
+        self.flip = options.flip
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         self.train_history =  {}
         self.train_history['disc_loss'] = []
@@ -98,6 +99,24 @@ class GAN:
                         ])
             )
 
+        elif self.dataset == 'lsun':
+            transform = transforms.Compose(
+            [
+                transforms.Resize(self.image_size),
+                transforms.ToTensor(),
+            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+            dataset = dset.ImageFolder(root=self.dataroot,transform=transform)  
+
+
+    # dataset = dset.LSUN(opt.dataroot, classes=['bedroom_train'],
+    #                     transform=transforms.Compose([
+    #                         transforms.Resize(opt.imageSize),
+    #                         transforms.CenterCrop(opt.imageSize),
+    #                         transforms.ToTensor(),
+    #                         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+    #                     ]))
+           
+
         else:
             # Get dataset
             data = get_dataset(self.dataroot)
@@ -108,8 +127,12 @@ class GAN:
 
         # # Set the type of GAN
         if self.type == "dcgan": 
-            self.generator = DcganGenerator(self.z_noise, self.channels, self.num_gen_filters).to(self.device)
-            self.discriminator = DcganDiscriminator(self.channels, self.num_disc_filters).to(self.device)
+            if self.image_size == 32:
+                self.generator = Generator32(self.z_noise, self.channels, self.num_gen_filters).to(self.device)
+                self.discriminator = Discriminator32(self.ngpu, self.channels, self.num_disc_filters).to(self.device)
+            else:
+                
+                self.discriminator = DcganDiscriminator(self.channels, self.num_disc_filters).to(self.device)
             criterion = nn.BCELoss()
 
         if self.type == "can":
@@ -119,7 +142,10 @@ class GAN:
         
         # setup optimizers
         # todo : options for SGD, RMSProp
-        self.disc_optimizer = optim.Adam(self.discriminator.parameters(), lr=self.lr)# betas=(self.beta1, 0.999))
+        if self.smoothing:
+            self.disc_optimizer = optim.SGD(self.discriminator.parameters(), lr=self.lr)# betas=(self.beta1, 0.999))
+        else:
+            self.disc_optimizer = optim.Adam(self.discriminator.parameters(), lr=self.lr)# betas=(self.beta1, 0.999))
         # recommended in GANhacks
         self.gen_optimizer = optim.Adam(self.generator.parameters(), lr=self.lr)#, betas=(self.beta1, 0.999))
         
@@ -143,11 +169,10 @@ class GAN:
        
         # Normalized noise
         fixed_noise = torch.randn(self.batch_size, self.z_noise, 1, 1,device=self.device)
-        labels = torch.full((self.batch_size,), real_label, device=self.device)
+      
 
         # Generator class/style labels
-        gen_style_labels = torch.LongTensor(self.batch_size)
-        gen_style_labels = gen_style_labels.fill_(1)
+        gen_style_labels = torch.new_ones(self.batch_size,device=self.device)
  
 
         # Actual training!
@@ -179,10 +204,8 @@ class GAN:
                 real_images, image_labels = data
                 real_images = real_images.to(self.device) 
                 batch_size = real_images.size(0)
-
                 real_image_labels = torch.LongTensor(batch_size).to(self.device)
                 real_image_labels.copy_(image_labels)
-                labels = torch.full((batch_size,), real_label, device=self.device)
 
                 # label smoothing
                 # rand_labels = np.random.uniform(low=0.7, high=1.2, size=(batch_size,))
@@ -195,6 +218,30 @@ class GAN:
                     disc_class_loss.backward(retain_graph=True)
                 else:
                     predicted_output_real = self.discriminator(real_images.detach())
+
+                if self.smoothing:
+                    labels_real = []
+                    labels_fake = []
+                    for n in range(self.batch_size):
+                        labels_real.append(random.uniform(0.7,1.3))
+                        labels_fake.append(random.uniform(0.0,0.3))
+                    labels_real = np.asarray(labels_real)
+                    labels_fake = np.asarray(labels_fake)
+                    if self.flip:
+                        prob = random.uniform(0.0,2.0)
+                        if prob < 0.3:
+                            labels = torch.new_tensor(labels_fake,device=self.device)
+                    else:
+                        labels = torch.new_tensor(labels_real,device=self.device)
+            #labels= torch.full((self.batch_size,), labels_, device=self.device)
+
+                else:
+                    if self.flip:
+                        prob = random.uniform(0.0,2.0)
+                        if prob < 0.3:
+                            labels = torch.new_tensor(fake_label,device=self.device)
+                    else:
+                        labels = torch.full((self.batch_size,), real_label, device=self.device)
                 
                 disc_loss_real = criterion(predicted_output_real,labels)
                 disc_loss_real.backward(retain_graph=True)
@@ -205,7 +252,15 @@ class GAN:
                 noise = torch.randn(batch_size,self.z_noise,1,1,device=self.device)
                 
                 fake_images = self.generator(noise)
-                labels.fill_(fake_label)
+                if self.flip:
+                    prob = random.uniform(0.0,2.0)
+                    if prob < 0.3:
+                        if self.smoothing:
+                            labels = torch.new_tensor(labels_real)
+                        else:
+                            labels.fill_(real_label)
+                else:
+                    labels.fill_(fake_label)
         
                 if self.type == 'can':
                     predicted_output_fake, predicted_styles_fake = self.discriminator(fake_images.detach())
@@ -272,7 +327,7 @@ class GAN:
                     # training_notes_file.write('\n[%d/%d][%d/%d] Loss_D: %.4f Loss_G: %.4f Class_D: %.4f Class_G: %.4f D(x): %.4f D(G(z)): %.4f / %.4f'
                     #     % (epoch, self.num_epochs, i, len(dataloader),
                     #         disc_loss.item(), gen_loss.item(), disc_class_loss.item(), gen_class_loss.item(), disc_x, disc_gen_z_1, disc_gen_z_2))            
-                if (i > 0 and (i % 1000 == 0)) or i == (len(dataloader) -1):
+                if (i > 0 and (i % 10000 == 0)) or i == (len(dataloader) -1):
                     fake = self.generator(fixed_noise)
                     vutils.save_image(fake.data,
                             '%s/fake_samples_epoch_%03d_%04d.jpg' % (self.out_folder, epoch,i),

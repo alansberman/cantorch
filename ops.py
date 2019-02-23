@@ -76,14 +76,22 @@ def get_image(image_path, mode):
     image = Image.open(image_path)
     return np.array(image.convert(mode))
 
-
+# get dataset
 def get_dataset(path):
     transform = transforms.Compose(
     [transforms.ToTensor(),
+
     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
     data = dset.ImageFolder(root=path,transform=transform)  
     return data
 
+def get_dataset_wgangp(path,image_size=32):
+    transform = transforms.Compose(
+    [transforms.Resize(image_size),
+    transforms.ToTensor(),
+    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+    data = dset.ImageFolder(root=path,transform=transform)  
+    return data
 class WikiartDataset(Dataset):
     def __init__(self, root_dir, transform=None):
         """

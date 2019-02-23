@@ -292,30 +292,42 @@ class GoodGenerator(nn.Module):
         output = output.view(-1, OUTPUT_DIM)
         return output
 
-#thanks to https://github.com/jalola/improved-wgan-pytorch/blob/master/models/wgan.py
-class GoodDiscriminator(nn.Module):
-    def __init__(self, dim=DIM):
-        super(GoodDiscriminator, self).__init__()
 
-        self.dim = dim
-
-        self.conv1 = MyConvo2d(3, self.dim, 3, he_init = False)
-        self.rb1 = ResidualBlock(self.dim, 2*self.dim, 3, resample = 'down', hw=DIM)
-        self.rb2 = ResidualBlock(2*self.dim, 4*self.dim, 3, resample = 'down', hw=int(DIM/2))
-        self.rb3 = ResidualBlock(4*self.dim, 8*self.dim, 3, resample = 'down', hw=int(DIM/4))
-        self.rb4 = ResidualBlock(8*self.dim, 8*self.dim, 3, resample = 'down', hw=int(DIM/8))
-        self.ln1 = nn.Linear(4*4*8*self.dim, 1)
+class Generator32(nn.Module):
+    def __init__(self,z_noise,channels,num_gen_filters):
+        super(Generator32, self).__init__()
+        self.ngpu = 1
+        nz = z_noise
+        nc = channels
+        ngf = num_gen_filters
+        self.main = nn.Sequential(
+            # input is Z, going into a convolution
+            nn.ConvTranspose2d(     nz, ngf * 8, 4, 1, 0, bias=False),
+            nn.BatchNorm2d(ngf * 8),
+            nn.ReLU(True),
+            # state size. (ngf*8) x 4 x 4
+            nn.ConvTranspose2d(ngf * 8, ngf * 4, 4, 2, 1, bias=False),
+            nn.BatchNorm2d(ngf * 4),
+            nn.ReLU(True),
+            # state size. (ngf*4) x 8 x 8
+            nn.ConvTranspose2d(ngf * 4, ngf * 2, 4, 2, 1, bias=False),
+            nn.BatchNorm2d(ngf * 2),
+            nn.ReLU(True),
+            # state size. (ngf*2) x 16 x 16
+            # was 4
+            # nn.ConvTranspose2d(ngf * 2,     ngf, 1, 2, 1, bias=False),
+            # nn.BatchNorm2d(ngf),
+            # nn.ReLU(True),
+            # state size. (ngf) x 32 x 32
+            nn.ConvTranspose2d(    ngf * 2,      nc, 4, 2, 1, bias=False),
+            nn.Tanh()
+            # state size. (nc) x 64 x 64
+        )
 
     def forward(self, input):
-        output = input.contiguous()
-        #32,32 was DIM,DIM
-        output = output.view(-1, 3, 32, 32)
-        output = self.conv1(output)
-        output = self.rb1(output)
-        output = self.rb2(output)
-        output = self.rb3(output)
-        output = self.rb4(output)
-        output = output.view(-1, 4*4*8*self.dim)
-        output = self.ln1(output)
-        output = output.view(-1)
+        if input.is_cuda and self.ngpu > 1:
+            output = nn.parallel.data_parallel(self.main, input, range(self.ngpu))
+        else:
+            output = self.main(input)
+        #
         return output

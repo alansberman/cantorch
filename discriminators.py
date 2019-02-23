@@ -5,11 +5,15 @@ import torch.nn.parallel
 import torch.backends.cudnn as cudnn
 import torch.optim as optim
 import torch.utils.data
+from generators import *
 import torchvision.datasets as dset
 import torchvision.transforms as transforms
 import torchvision.utils as vutils
 from torch.autograd import Variable
 import sys
+
+DIM = 32
+OUTPUT_DIM = 32*32*4
 # Base dcgan discriminator
 class DcganDiscriminator(nn.Module):
   
@@ -785,15 +789,15 @@ class Discriminator32(nn.Module):
             output = self.main(input)
 
         return output.view(-1, 1).squeeze(1)
+DIM=64
 
 
-#thanks to https://github.com/jalola/improved-wgan-pytorch/blob/master/models/wgan.py
+# #thanks to https://github.com/jalola/improved-wgan-pytorch/blob/master/models/wgan.py
 class GoodDiscriminator(nn.Module):
-    def __init__(self, dim=DIM):
+    def __init__(self, dim=64):
         super(GoodDiscriminator, self).__init__()
 
         self.dim = dim
-
         self.conv1 = MyConvo2d(3, self.dim, 3, he_init = False)
         self.rb1 = ResidualBlock(self.dim, 2*self.dim, 3, resample = 'down', hw=DIM)
         self.rb2 = ResidualBlock(2*self.dim, 4*self.dim, 3, resample = 'down', hw=int(DIM/2))
@@ -804,7 +808,7 @@ class GoodDiscriminator(nn.Module):
     def forward(self, input):
         output = input.contiguous()
         #32,32 was DIM,DIM
-        output = output.view(-1, 3, 32, 32)
+        output = output.view(-1, 3, DIM, DIM)
         output = self.conv1(output)
         output = self.rb1(output)
         output = self.rb2(output)
@@ -814,3 +818,74 @@ class GoodDiscriminator(nn.Module):
         output = self.ln1(output)
         output = output.view(-1)
         return output
+#dim is 32
+# #thanks to https://github.com/jalola/improved-wgan-pytorch/blob/master/models/wgan.py
+class GoodCanDiscriminator(nn.Module):
+    def __init__(self, dim=32,y_dim=27):
+        super(GoodCanDiscriminator, self).__init__()
+        self.y_dim = y_dim
+        self.dim = dim
+        self.conv1 = MyConvo2d(3, self.dim, 3, he_init = False)
+        self.rb1 = ResidualBlock(self.dim, 2*self.dim, 3, resample = 'down', hw=DIM)
+        self.rb2 = ResidualBlock(2*self.dim, 4*self.dim, 3, resample = 'down', hw=int(DIM/2))
+        self.rb3 = ResidualBlock(4*self.dim, 8*self.dim, 3, resample = 'down', hw=int(DIM/4))
+        self.rb4 = ResidualBlock(8*self.dim, 8*self.dim, 3, resample = 'down', hw=int(DIM/8))
+        # for CAN loss
+        self.fc = nn.Sequential() 
+        # need tensor of [x,4096]
+        self.fc.add_module("linear_layer{0}".format(16*self.dim),nn.Linear(32*self.dim,16*self.dim))
+        self.fc.add_module("linear_layer{0}".format(8*self.dim),nn.Linear(16*self.dim,16*self.dim))
+        self.fc.add_module("linear_layer{0}".format(self.y_dim),nn.Linear(16*self.dim,self.y_dim))
+        self.fc.add_module('softmax',nn.Softmax(dim=1))
+        self.ln1 = nn.Linear(4*8*self.dim, 1)
+
+    def forward(self, input):
+        output = input.contiguous()
+        #32,32 was DIM,DIM
+        output = output.view(-1, 3, DIM,DIM)
+        output = self.conv1(output)
+        output = self.rb1(output)
+        output = self.rb2(output)
+        output = self.rb3(output)
+        output = self.rb4(output)
+        output_real = output.view(-1, 4*8*self.dim)
+        output_class = self.fc(output_real)
+        output_real = self.ln1(output_real)
+        output_real = output_real.view(-1)
+        return output_real,output_class
+
+#dim is 32
+# #thanks to https://github.com/jalola/improved-wgan-pytorch/blob/master/models/wgan.py
+class GoodCan64Discriminator(nn.Module):
+    def __init__(self, dim=64,y_dim=27):
+        super(GoodCan64Discriminator, self).__init__()
+        self.y_dim = y_dim
+        self.dim = dim
+        self.conv1 = MyConvo2d(3, self.dim, 3, he_init = False)
+        self.rb1 = ResidualBlock(self.dim, 2*self.dim, 3, resample = 'down', hw=DIM)
+        self.rb2 = ResidualBlock(2*self.dim, 4*self.dim, 3, resample = 'down', hw=int(DIM/2))
+        self.rb3 = ResidualBlock(4*self.dim, 8*self.dim, 3, resample = 'down', hw=int(DIM/4))
+        self.rb4 = ResidualBlock(8*self.dim, 8*self.dim, 3, resample = 'down', hw=int(DIM/8))
+        # for CAN loss
+        self.fc = nn.Sequential() 
+        # need tensor of [x,4096]
+        self.fc.add_module("linear_layer{0}".format(16*self.dim),nn.Linear(64*2*self.dim,16*self.dim))
+        self.fc.add_module("linear_layer{0}".format(8*self.dim),nn.Linear(16*self.dim,8*self.dim))
+        self.fc.add_module("linear_layer{0}".format(self.y_dim),nn.Linear(8*self.dim,self.y_dim))
+        self.fc.add_module('softmax',nn.Softmax(dim=1))
+        self.ln1 = nn.Linear(4*4*8*self.dim, 1)
+
+    def forward(self, input):
+        output = input.contiguous()
+        #32,32 was DIM,DIM
+        output = output.view(-1, 3, DIM, DIM)
+        output = self.conv1(output)
+        output = self.rb1(output)
+        output = self.rb2(output)
+        output = self.rb3(output)
+        output = self.rb4(output)
+        output_real = output.view(-1, 4*4*8*self.dim)
+        output_class = self.fc(output_real)
+        output_real = self.ln1(output_real)
+        output_real = output_real.view(-1)
+        return output_real,output_class

@@ -17,15 +17,15 @@ from torch.autograd import Variable
 
 # Args
 parser = argparse.ArgumentParser()
-parser.add_argument('--dataset',  help='cifar10 | lsun | imagenet | wikiart',default='imagenet')
+parser.add_argument('--dataset',  help='cifar10 | lsun | imagenet | wikiart',default='wikiart')
 parser.add_argument('--dataroot', help='path to dataset',default="/mydata") # D:\\WikiArt\\wikiart\\ #/mydata
 parser.add_argument('--workers', type=int, help='number of data loading workers', default=16)
 parser.add_argument('--gan_type', type=str, help='dcgan | wgan | can', default='dcgan')
 parser.add_argument('--batch_size', type=int, default=64, help='input batch size')
-parser.add_argument('--image_size', type=int, default=32, help='the height / width of the input image to network')
+parser.add_argument('--image_size', type=int, default=64, help='the height / width of the input image to network')
 parser.add_argument('--optimizer', type=str, default="Adam", help='Adam | SGD | RMSProp')
 parser.add_argument('--z_noise', type=int, default=128, help='size of the latent z vector')
-parser.add_argument('--y_dim',type=int,help="number of output/target classes",default=10)
+parser.add_argument('--y_dim',type=int,help="number of output/target classes",default=27)
 parser.add_argument('--channels',type=int,help="number of image channels",default=3)
 parser.add_argument('--num_gen_filters', type=int, default=64)
 parser.add_argument('--power', type=int, default=8, help="1-number of hidden layers")
@@ -45,6 +45,8 @@ parser.add_argument('--wgan', type=bool, default=True, help='if training a la WG
 parser.add_argument('--lsgan', type=bool, default=False, help='if training with LSGAN') #"/output"
 parser.add_argument('--num_critic', type=int, default=5,help="D:G training") #"/output"
 parser.add_argument('--gradient_penalty', type=bool, default=True,help="if training with WGANGP") #"/output"
+parser.add_argument('--smoothing', type=bool, default=True,help="if using label smoothing") #"/output"
+parser.add_argument('--flip', type=bool, default=True,help="if flipping the labels") #"/output"
 
 
 parser.add_argument('--manual_seed', type=int, help='manual seed')
